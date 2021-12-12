@@ -96,7 +96,7 @@ class TestCaches(unittest.TestCase):
         self.assertEqual(cache.recv(3, self.d), Status.MISS)  # MISS
         self.assertEqual(cache.recv(3.1, self.d), Status.HIT)  # 2nd request on a, must be HIT
         self.assertEqual(cache.recv(3.2, self.d), Status.HIT)  # 3rd request on a, must be HIT
-        self.assertEqual(cache.recv(1000, self.d), Status.MISS)  # expited, must be MISS
+        self.assertEqual(cache.recv(1000, self.d), Status.MISS)  # expired, must be MISS
 
 
 if __name__ == '__main__':
