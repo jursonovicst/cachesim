@@ -1,5 +1,5 @@
 class Obj:
-    def __init__(self, index, size: int, maxage: int = 0):
+    def __init__(self, index, size: int, maxage: int):
         """
 
         :param index: Uniq identifier of the object (hash key).
@@ -41,7 +41,7 @@ class Obj:
 
     def isexpired(self, now: float) -> bool:
         assert self.enter is not None, f"Object must first enter the cache to determine if it is expired."
-        return self.enter + self.maxage > now
+        return self.enter + self.maxage < now
 
     @property
     def fetched(self) -> bool:
