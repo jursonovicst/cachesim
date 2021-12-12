@@ -62,7 +62,7 @@ class TestCaches(unittest.TestCase):
         self.a = Obj('a', 100, 300)
         self.b = Obj('b', 100, 300)
         self.c = Obj('c', 100, 300)
-        self.d = Obj('c', 30, 300)
+        self.d = Obj('d', 30, 300)
 
     def test_noncache(self):
         # create cache
