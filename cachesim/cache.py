@@ -19,33 +19,33 @@ class Cache(ABC):
 
         # max cache size
         assert maxsize > 0 and isinstance(maxsize, int), f"Cache must have positive integer size: '{maxsize}' received!"
-        self._maxsize = maxsize
+        self.__maxsize = maxsize
 
         # keep track of the time
-        self._clock = None
+        self.__clock = None
 
         # setup logging
         if logger is None:
-            self._logger = logging.getLogger(name=self.__class__.__name__)
+            self.__logger = logging.getLogger(name=self.__class__.__name__)
             # self._logger.setLevel(logging.DEBUG)  TODO: FIX this
         else:
-            self._logger = logger
+            self.__logger = logger
 
     @property
     def maxsize(self) -> int:
         """Total size of the cache."""
-        return self._maxsize
+        return self.__maxsize
 
     @property
     def clock(self) -> float:
         """Current time."""
-        return self._clock
+        return self.__clock
 
     @clock.setter
     def clock(self, time: float):
         """Update current time."""
-        assert self._clock is None or time >= self._clock, f"Time passes, you will never become younger!"
-        self._clock = time
+        assert self.__clock is None or time >= self.__clock, f"Time passes, you will never become younger!"
+        self.__clock = time
 
     def recv(self, time: float, obj: Obj) -> Status:
         """
@@ -60,34 +60,34 @@ class Cache(ABC):
         self.clock = time
 
         # try to get the object from cache
-        stored = self.lookup(obj)
+        stored = self._lookup(obj)
         if stored is not None:
 
             # retrieved from cache, check expires
             if not stored.isexpired(self.clock):
                 # HIT, "serv" object from cache
-                self.log(stored, Status.HIT)
+                self.__log(stored, Status.HIT)
                 return Status.HIT
 
         # MISS: not in cache or expired --> just simulate fetch!
         obj.fetched = True
 
         # cache admission
-        if self.admit(obj):
+        if obj.cacheable and obj.size <= self.maxsize and self._admit(obj):
 
             # store
             obj.enter = self.clock
-            self.store(obj)
+            self._store(obj)
 
-            self.log(obj, Status.MISS)
+            self.__log(obj, Status.MISS)
             return Status.MISS
 
         else:
-            self.log(obj, Status.PASS)
+            self.__log(obj, Status.PASS)
             return Status.PASS
 
     @abstractmethod
-    def admit(self, fetched: Obj) -> bool:
+    def _admit(self, fetched: Obj) -> bool:
         """
         Implement this method to provide a cache admission policy.
 
@@ -97,7 +97,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def lookup(self, requested: Obj) -> Optional[Obj]:
+    def _lookup(self, requested: Obj) -> Optional[Obj]:
         """
         Implement this method to provide a caching function. In this state, the content of the object is not known.
         Return the cached object.
@@ -108,7 +108,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, fetched: Obj):
+    def _store(self, fetched: Obj):
         """
         Implement this method to store objects.
 
@@ -116,6 +116,6 @@ class Cache(ABC):
         """
         pass
 
-    def log(self, obj, status: Status):
+    def __log(self, obj, status: Status):
         """Basic logging"""
-        self._logger.warning(f"{self.clock} {status} {obj}")
+        self.__logger.warning(f"{self.clock} {status} {obj}")
