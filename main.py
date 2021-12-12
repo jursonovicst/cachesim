@@ -30,12 +30,7 @@ class FIFOCache(Cache):
 
     def lookup(self, requested: Obj) -> Optional[Obj]:
         # check if object already in cache
-        stored = next((x for x in self._cache if x == requested), None)
-        if stored is not None:
-            # HIT
-            return stored
-
-        return None
+        return next((x for x in self._cache if x == requested), None)
 
     def admit(self, fetched: Obj) -> bool:
         return True
@@ -60,7 +55,6 @@ class ProtectedFIFOCache(FIFOCache):
 
 
 if __name__ == '__main__':
-
     # define objects
     x = Obj('x', 1000)
     a = Obj('a', 100)
@@ -78,7 +72,6 @@ if __name__ == '__main__':
     cache.recv(3, a)
     cache.recv(4, c)
 
-
     cache = FIFOCache(400)
     cache.recv(0, x)
     cache.recv(0, x)
@@ -86,7 +79,6 @@ if __name__ == '__main__':
     cache.recv(2, b)
     cache.recv(3, a)
     cache.recv(4, c)
-
 
     a = Obj('a', 100)
     b = Obj('b', 100)
