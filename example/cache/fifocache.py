@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Optional, Iterable
+from tqdm import tqdm
 
 from cachesim.cache import Cache, Request, Status
 
@@ -61,3 +62,43 @@ class FIFOCache(Cache):
 
     def _log(self, request: Request, status: Status):
         return super()._log(request, status) + (self.size / self.totalsize,)
+
+
+if __name__ == "__main__":
+
+    class PBarCache(FIFOCache):
+        """
+        Noncache variant to show, how to integrate a progress bar to keep track of the simulation.
+        """
+
+        def map(self, requests: Iterable[Request], total=None):
+            return map(self._recv, tqdm(requests, desc=self.__class__.__name__, total=total))
+
+
+    class MyRequests:
+        def __init__(self, n: int):
+            self.n = n
+
+        def __iter__(self):
+            self.request = Request(0, 'a', 1, 30)
+            return self
+
+        def __next__(self):
+            if self.n > 0:
+                self.n -= 1
+                return self.request
+            else:
+                raise StopIteration
+
+
+    cache = PBarCache(totalsize=1000)
+
+    total = 10000000
+    client_requests = MyRequests(n=total)
+
+    req, sta, cac = zip(*list(cache.map(client_requests, total=total)))
+
+    hit = sta.count(Status.HIT)
+    print(f"Requests: {len(sta)}")
+    print(f"CHR: {hit / len(sta) * 100:.2f}%")
+    print(f"Bytes sent: {sum(r.size for r in req)} Byte")
