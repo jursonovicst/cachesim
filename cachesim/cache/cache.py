@@ -16,7 +16,8 @@ class Cache(ABC):
         :param totalsize: Size of the cache.
         """
         # check cache size (we allow 0 size for theoretical plausibility)
-        assert totalsize >= 0 and isinstance(totalsize, int), f"Cache must have non negative integer size: '{totalsize}' received!"
+        assert totalsize >= 0 and isinstance(totalsize,
+                                             int), f"Cache must have non negative integer size: '{totalsize}' received!"
         self.__totalsize = totalsize
 
     @property
@@ -73,7 +74,7 @@ class Cache(ABC):
             # retrieved from cache, ttl expired?
             if not stored.isexpired(request.time):
                 # "serv" object from cache
-                return stored, Status.HIT
+                return self.log(stored, Status.HIT)
 
         # MISS: not in cache or expired --> just simulate fetch!
         request.fetched = True
@@ -90,11 +91,11 @@ class Cache(ABC):
             self._store(request)
 
             # "serv" object from origin
-            return request, Status.MISS
+            return self.log(request, Status.MISS)
 
         else:
             # "serv" object in passthrough mode
-            return request, Status.PASS
+            return self.log(request, Status.PASS)
 
     @abstractmethod
     def _lookup(self, requested: Request) -> Optional[Request]:
@@ -143,3 +144,6 @@ class Cache(ABC):
         Implement this method to provide cache eviction.
         """
         pass
+
+    def log(self, request: Request, status: Status):
+        return (request, status)
