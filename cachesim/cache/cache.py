@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Tuple
 
 from cachesim.cache import Request, Status
 
@@ -56,7 +56,7 @@ class Cache(ABC):
     #         # close process
     #         self.close()
 
-    def __recv(self, request: Request) -> str:
+    def __recv(self, request: Request) -> Tuple[Request, Status]:
         """
         Processes a single request against the cache.
 
@@ -73,7 +73,7 @@ class Cache(ABC):
             # retrieved from cache, ttl expired?
             if not stored.isexpired(request.time):
                 # "serv" object from cache
-                return self.__log(stored, Status.HIT)
+                return stored, Status.HIT
 
         # MISS: not in cache or expired --> just simulate fetch!
         request.fetched = True
@@ -90,11 +90,11 @@ class Cache(ABC):
             self._store(request)
 
             # "serv" object from origin
-            return self.__log(request, Status.MISS)
+            return request, Status.MISS
 
         else:
             # "serv" object in passthrough mode
-            return self.__log(request, Status.PASS)
+            return request, Status.PASS
 
     @abstractmethod
     def _lookup(self, requested: Request) -> Optional[Request]:
@@ -143,7 +143,3 @@ class Cache(ABC):
         Implement this method to provide cache eviction.
         """
         pass
-
-    def __log(self, request: Request, status: Status) -> str:
-        """Basic logging"""
-        return f"{request} {status}"
