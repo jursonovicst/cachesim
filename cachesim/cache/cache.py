@@ -1,84 +1,62 @@
-import logging
 from abc import ABC, abstractmethod
-from multiprocessing import Process, Queue
-from typing import Optional
-
-from tqdm import tqdm
+from typing import Optional, Iterable
 
 from cachesim.cache import Request, Status
 
 
-class Cache(ABC, Process):
+class Cache(ABC):
     """
     Abstract class to provide framework and basic functions. Inherit your model from this class.
     """
 
-    def __init__(self, size: int, in_q: Queue, logger: logging.Logger = None):
+    def __init__(self, size: int):
         """
         Cache initialization. Overload the init method for custom implementation.
 
         :param size: Size of the cache.
-        :param in_q: Queue to read to get chunks of requests to process.
-        :param logger: Provide a logger, or use the default one.
         """
-        super().__init__(name=self.__class__.__name__)
-
-        # check cache size
-        assert size > 0 and isinstance(size, int), f"Cache must have positive integer size: '{size}' received!"
+        # check cache size (we allow 0 size for theoretical plausibility)
+        assert size >= 0 and isinstance(size, int), f"Cache must have non negative integer size: '{size}' received!"
         self.__size = size
-
-        self.__in_q = in_q
-
-        # setup logging
-        if logger is None:
-            self.__logger = logging.getLogger(name=self.__class__.__name__)
-            # self._logger.setLevel(logging.DEBUG)  TODO: FIX this
-        else:
-            self.__logger = logger
-
-        # KPIs
-        self._hit = 0
-        self._count = 0
 
     @property
     def size(self) -> int:
         """Total size of the cache."""
         return self.__size
 
-    @property
-    def queue(self):
-        return self.__in_q
+    def map(self, requests: Iterable[Request]):
+        return map(self.__recv, requests)
 
-    @property
-    def chr(self) -> float:
-        return self._hit / self._count
+    # def imap(self, requests: Iterable[Request], chunksize: int = 1):
+    #     self.map(requests)
+    #
+    #         # return iterator for slices
+    #         for chunk in islice(result_i, chunksize):
+    #             print(chunk)
+    #
+    #     except KeyboardInterrupt:
+    #         pass
+    #     except Exception as e:
+    #         self.__logger.exception(f"{e.__class__.__name__} occurred: {e}")
 
-    def run(self):
-        try:
-            # use a progress bar to keep track of the simulation
-            with tqdm(desc=self.__class__.__name__, position=2) as pbar:
+    # def run(self):
+    #     try:
+    #         # map the __recv function (in tqdm for progress bar) to create an iterator object
+    #         result_i = map(self.__recv, tqdm(self.__requests, desc=self.__class__.__name__, position=2))
+    #
+    #         # start processing in chunks
+    #         for chunk in islice(result_i, 10):
+    #             print(chunk)
+    #
+    #     except KeyboardInterrupt:
+    #         pass
+    #     except Exception as e:
+    #         self.__logger.exception(f"{e.__class__.__name__} occurred: {e}")
+    #     finally:
+    #         # close process
+    #         self.close()
 
-                # chunk of ingress metadata
-                while chunk_in := self.__in_q.get():
-                    # process requests in the queue, collect metadata
-                    chunk_e = list(map(self.__recv, chunk_in))
-
-                    # update KPIs
-                    self._count += len(chunk_in)
-                    self._hit += sum(map(lambda status: 1 if status == Status.HIT else 0))
-
-                    # update progress bar
-                    pbar.update(len(chunk_e))
-
-        except KeyboardInterrupt:
-            pass
-        except Exception as e:
-            self.__logger.exception(f"{e.__class__.__name__} occurred: {e}")
-        finally:
-            # close process
-            self.close()
-
-    def __recv(self, request: Request) -> Status:
+    def __recv(self, request: Request) -> str:
         """
         Processes a single request against the cache.
 
@@ -94,11 +72,8 @@ class Cache(ABC, Process):
 
             # retrieved from cache, ttl expired?
             if not stored.isexpired(request.time):
-                # HIT
-                self.monitor(stored, Status.HIT)
-
                 # "serv" object from cache
-                return Status.HIT
+                return self.__log(stored, Status.HIT)
 
         # MISS: not in cache or expired --> just simulate fetch!
         request.fetched = True
@@ -114,18 +89,12 @@ class Cache(ABC, Process):
             request.enter = request.time
             self._store(request)
 
-            # MISS
-            self.monitor(request, Status.MISS)
-
             # "serv" object from origin
-            return Status.MISS
+            return self.__log(request, Status.MISS)
 
         else:
-            # PASS
-            self.monitor(request, Status.PASS)
-
             # "serv" object in passthrough mode
-            return Status.PASS
+            return self.__log(request, Status.PASS)
 
     @abstractmethod
     def _lookup(self, requested: Request) -> Optional[Request]:
@@ -175,13 +144,6 @@ class Cache(ABC, Process):
         """
         pass
 
-    def monitor(self, fetched: Request, status: Status):
-        """
-
-        :return:
-        """
-        self.__log(fetched, status)
-
-    def __log(self, request: Request, status: Status):
+    def __log(self, request: Request, status: Status) -> str:
         """Basic logging"""
-        self.__logger.warning(f"{request} {status}")
+        return f"{request} {status}"
