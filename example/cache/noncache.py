@@ -9,7 +9,7 @@ class NonCache(Cache):
     """
 
     def __init__(self):
-        super().__init__(size=0)
+        super().__init__(totalsize=0)
 
     def _lookup(self, requested: Request) -> Optional[Request]:
         # object is never in cache
