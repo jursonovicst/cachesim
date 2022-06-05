@@ -11,6 +11,7 @@ class TestNonCache(TestCase):
         maxage = 300
         request = Request(0, content, len(content), maxage)
 
+        self.assertEqual(0, cache.totalsize)
         self.assertFalse(cache._lookup(request))
         self.assertFalse(cache._admit(request))
         cache._store(request)
