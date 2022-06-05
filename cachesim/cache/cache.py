@@ -146,4 +146,4 @@ class Cache(ABC):
         pass
 
     def log(self, request: Request, status: Status):
-        return (request, status)
+        return request, status
