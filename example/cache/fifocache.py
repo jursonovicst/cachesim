@@ -1,4 +1,5 @@
 from typing import Optional, Iterable
+
 from tqdm import tqdm
 
 from cachesim.cache import Cache, Request, Status
@@ -68,14 +69,18 @@ if __name__ == "__main__":
 
     class PBarCache(FIFOCache):
         """
-        Noncache variant to show, how to integrate a progress bar to keep track of the simulation.
+        Integrates a progress bar to keep track of the simulation.
         """
 
         def map(self, requests: Iterable[Request], total=None):
-            return map(self._recv, tqdm(requests, desc=self.__class__.__name__, total=total))
+            return map(self._recv, tqdm(requests, desc=self.__class__.__base__.__name__, total=total))
 
 
     class MyRequests:
+        """
+        Creates arbitrary client requests.
+        """
+
         def __init__(self, n: int):
             self.n = n
 
