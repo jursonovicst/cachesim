@@ -60,4 +60,4 @@ class FIFOCache(Cache):
         return self.size / self.totalsize > 0.95
 
     def log(self, request: Request, status: Status):
-        return request, status, self.size / self.totalsize
+        return super().log(request, status) + (self.size / self.totalsize,)
