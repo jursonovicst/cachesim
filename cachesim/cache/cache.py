@@ -9,20 +9,20 @@ class Cache(ABC):
     Abstract class to provide framework and basic functions. Inherit your model from this class.
     """
 
-    def __init__(self, size: int):
+    def __init__(self, totalsize: int):
         """
         Cache initialization. Overload the init method for custom implementation.
 
-        :param size: Size of the cache.
+        :param totalsize: Size of the cache.
         """
         # check cache size (we allow 0 size for theoretical plausibility)
-        assert size >= 0 and isinstance(size, int), f"Cache must have non negative integer size: '{size}' received!"
-        self.__size = size
+        assert totalsize >= 0 and isinstance(totalsize, int), f"Cache must have non negative integer size: '{totalsize}' received!"
+        self.__totalsize = totalsize
 
     @property
-    def size(self) -> int:
+    def totalsize(self) -> int:
         """Total size of the cache."""
-        return self.__size
+        return self.__totalsize
 
     def map(self, requests: Iterable[Request]):
         return map(self.__recv, requests)
@@ -79,7 +79,7 @@ class Cache(ABC):
         request.fetched = True
 
         # cache admission
-        if request.cacheable and request.size <= self.size and self._admit(request):
+        if request.cacheable and request.size <= self.totalsize and self._admit(request):
 
             # treshold?
             if self.treshold:
