@@ -20,7 +20,7 @@ class TestFIFOCache(TestCase):
         cache._store(request)
         self.assertEqual(request.size, cache.size)
         self.assertTrue(cache._lookup(request))
-        self.assertFalse(cache.treshold)
+        self.assertFalse(cache._treshold)
         bigrequest.fetched = True
         self.assertFalse(cache._admit(bigrequest))
         self.assertEqual(request.size, cache.size)

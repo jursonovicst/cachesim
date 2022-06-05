@@ -56,8 +56,8 @@ class FIFOCache(Cache):
             self.size -= evicted.size
 
     @property
-    def treshold(self) -> bool:
+    def _treshold(self) -> bool:
         return self.size / self.totalsize > 0.95
 
-    def log(self, request: Request, status: Status):
-        return super().log(request, status) + (self.size / self.totalsize,)
+    def _log(self, request: Request, status: Status):
+        return super()._log(request, status) + (self.size / self.totalsize,)

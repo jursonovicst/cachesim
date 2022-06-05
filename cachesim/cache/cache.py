@@ -26,7 +26,7 @@ class Cache(ABC):
         return self.__totalsize
 
     def map(self, requests: Iterable[Request]):
-        return map(self.__recv, requests)
+        return map(self._recv, requests)
 
     # def imap(self, requests: Iterable[Request], chunksize: int = 1):
     #     self.map(requests)
@@ -57,7 +57,7 @@ class Cache(ABC):
     #         # close process
     #         self.close()
 
-    def __recv(self, request: Request) -> Tuple[Request, Status]:
+    def _recv(self, request: Request) -> Tuple[Request, Status]:
         """
         Processes a single request against the cache.
 
@@ -74,7 +74,7 @@ class Cache(ABC):
             # retrieved from cache, ttl expired?
             if not stored.isexpired(request.time):
                 # "serv" object from cache
-                return self.log(stored, Status.HIT)
+                return self._log(stored, Status.HIT)
 
         # MISS: not in cache or expired --> just simulate fetch!
         request.fetched = True
@@ -83,7 +83,7 @@ class Cache(ABC):
         if request.cacheable and request.size <= self.totalsize and self._admit(request):
 
             # treshold?
-            if self.treshold:
+            if self._treshold:
                 self._evict()
 
             # store object, update cache enter time for TTL
@@ -91,11 +91,11 @@ class Cache(ABC):
             self._store(request)
 
             # "serv" object from origin
-            return self.log(request, Status.MISS)
+            return self._log(request, Status.MISS)
 
         else:
             # "serv" object in passthrough mode
-            return self.log(request, Status.PASS)
+            return self._log(request, Status.PASS)
 
     @abstractmethod
     def _lookup(self, requested: Request) -> Optional[Request]:
@@ -131,7 +131,7 @@ class Cache(ABC):
 
     @property
     @abstractmethod
-    def treshold(self) -> bool:
+    def _treshold(self) -> bool:
         """
         Implement this property to provide a treshold for triggering cache evictions
         :return:
@@ -145,5 +145,5 @@ class Cache(ABC):
         """
         pass
 
-    def log(self, request: Request, status: Status):
+    def _log(self, request: Request, status: Status):
         return request, status

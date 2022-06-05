@@ -16,7 +16,7 @@ class TestNonCache(TestCase):
         self.assertFalse(cache._admit(request))
         cache._store(request)
         self.assertFalse(cache._lookup(request))
-        self.assertFalse(cache.treshold)
+        self.assertFalse(cache._treshold)
 
         cache = NonCache()
         ret = cache.map([request] * 100)

@@ -26,6 +26,6 @@ class NonCache(Cache):
         pass
 
     @property
-    def treshold(self) -> bool:
+    def _treshold(self) -> bool:
         # no need to eviction
         return False
