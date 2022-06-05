@@ -1,4 +1,4 @@
-from cachesim.cache import Cache, Request
+from cachesim.cache import Cache, Request, Status
 from typing import Optional
 
 
@@ -55,3 +55,6 @@ class FIFOCache(Cache):
 
     def treshold(self) -> bool:
         return self.size / self.totalsize > 0.95
+
+    def log(self, request: Request, status: Status):
+        return request, status, self.size / self.totalsize
