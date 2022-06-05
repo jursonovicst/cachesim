@@ -1,5 +1,6 @@
-from cachesim.cache import Cache, Request, Status
 from typing import Optional
+
+from cachesim.cache import Cache, Request, Status
 
 
 class FIFOCache(Cache):
@@ -30,7 +31,7 @@ class FIFOCache(Cache):
 
     def _lookup(self, requested: Request) -> Optional[Request]:
         try:
-            return self._cache[requested]
+            return self._cache[requested.hash]
         except KeyError:
             return None
 
@@ -41,6 +42,7 @@ class FIFOCache(Cache):
     def _store(self, fetched: Request):
         self._cache[fetched.hash] = fetched
         self._index.append(fetched.hash)
+        self.size += fetched.size
 
     def _evict(self):
         """
@@ -53,6 +55,7 @@ class FIFOCache(Cache):
             evicted = self._cache.pop(hash_to_delete)
             self.size -= evicted.size
 
+    @property
     def treshold(self) -> bool:
         return self.size / self.totalsize > 0.95
 
