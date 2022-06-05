@@ -16,9 +16,6 @@ class PBarCache(NonCache):
 
 
 if __name__ == "__main__":
-    cache = PBarCache()
-
-
     class MyRequests:
         def __init__(self, n: int):
             self.n = n
@@ -35,10 +32,14 @@ if __name__ == "__main__":
                 raise StopIteration
 
 
+    cache = PBarCache()
+
     total = 10000000
     client_requests = MyRequests(n=total)
+
     req, sta = zip(*list(cache.map(client_requests, total=total)))
 
     hit = sta.count(Status.HIT)
     print(f"Requests: {len(sta)}")
     print(f"CHR: {hit / len(sta) * 100:.2f}%")
+    print(f"Bytes sent: {sum(r.size for r in req)}Byte")
