@@ -38,7 +38,8 @@ if __name__ == "__main__":
     reader = ConstantReader(totalcount, Request(0, 'abc', 1, 3600))
 
 
-    class MyCache(PBarMixIn, NonCache): pass
+    class MyCache(PBarMixIn, NonCache):
+        pass
 
 
     cache = MyCache()

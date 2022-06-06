@@ -1,7 +1,7 @@
 from typing import Optional
 
 from cachesim import Request
-from cachesim.cache import Cache, Status
+from cachesim.cache import Cache, Status, PBarMixIn
 from example.reader import ConstantReader
 
 
@@ -79,7 +79,8 @@ if __name__ == "__main__":
     reader = ConstantReader(totalcount, Request(0, 'abc', 1, 3600))
 
 
-    class MyCache(PBarMixIn, FIFOCache): pass
+    class MyCache(PBarMixIn, FIFOCache):
+        pass
 
 
     cache = MyCache(totalsize=int(1000))

@@ -29,7 +29,8 @@ if __name__ == "__main__":
     reader = ConstantReader(totalcount, Request(0, 'abc', 1, 3600))
 
 
-    class MyCache(PBarMixIn, FIFOCache): pass
+    class MyCache(PBarMixIn, FIFOCache):
+        pass
 
 
     cache = MyCache(totalsize=int(totalcount * 0.1))
