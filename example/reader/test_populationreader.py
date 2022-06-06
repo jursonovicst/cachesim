@@ -39,6 +39,4 @@ class TestRandomReader(TestCase):
             self.assertGreater(r.time, lastts)
             lastts = r.time
 
-            time.sleep(0.01)
-
         self.assertEqual(totalsize, count)
