@@ -8,7 +8,7 @@ sent back to the client, in case of a pass, the object is
 fetched from an origin, stored (if needed), and sent back
 to the client.
 
-![](model.png)
+![](arch.jpg)
 
 
 ## Simplified cache model
@@ -24,7 +24,7 @@ To research cache algorithms, the above model can be simplified.
 - The whole origin fetch can be skipped, because the response metadata
   is already know at request time.
   
-![](simplified.png)
+![](simplified.jpg)
 
 These simplifications will enable an efficient and performant simulation.
     
@@ -36,7 +36,7 @@ See the cachesim python modul and the documentation in the source code.
 cachesim.Cache provides a basic framework to implement further caching
 methods. This class realizes the following message flow:
 
-![](flow.png)
+![](flow.jpg)
 
 - The request (and response) metadata is sent to the *recv* method.
 - The *lookup* method searches the requested object in the store 
