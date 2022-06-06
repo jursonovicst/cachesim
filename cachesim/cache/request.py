@@ -27,6 +27,10 @@ class Request:
     def time(self) -> float:
         return self._time
 
+    @time.setter
+    def time(self, v: float):
+        self._time = v
+
     @property
     def hash(self) -> str:
         return self._hash

@@ -1,7 +1,12 @@
+import random
+import time
 from unittest import TestCase
+
+import matplotlib.pyplot as plt
 
 from cachesim.cache import Request, Status
 from example.cache import FIFOCache
+from example.reader import PopulationReader
 
 
 class TestFIFOCache(TestCase):
@@ -36,3 +41,32 @@ class TestFIFOCache(TestCase):
         self.assertTrue(all(r.size == request.size for r in requests))
         self.assertTrue(all(r.fetched for r in requests))
         self.assertTrue(all(r == request for r in requests))
+
+    def test_chr(self):
+        # create reader with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
+        count = 10000
+        popcount = int(count / 10)
+        mean = 300
+        stddev = 20
+        reader = PopulationReader(count,
+                                  population=[Request(time.time(),
+                                                      "%x" % random.getrandbits(128),
+                                                      int(random.normalvariate(mean, stddev)),
+                                                      int(3600))
+                                              for x in range(0, popcount)],
+                                  weights=[1] * popcount)
+
+        # create a cache, size limited to 10% of content base
+        totalsize = int(count * mean / 10)
+        cache = FIFOCache(totalsize=totalsize)
+
+        ret = cache.map(reader)
+        requests, statuses, sizes = zip(*list(ret))
+        chr = sum(s == Status.HIT for s in statuses) / count
+        print(f"CHR: {chr * 100:.2f}%")
+
+        plt.plot([r.time for r in requests], sizes)
+        plt.ylim(0, totalsize)
+        plt.ylabel("cache size (B)")
+        plt.ylabel('time')
+        plt.show()
