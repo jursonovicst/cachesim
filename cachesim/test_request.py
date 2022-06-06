@@ -3,7 +3,7 @@ import string
 import time
 from unittest import TestCase
 
-from cachesim.cache import Request
+from cachesim import Request
 
 
 class TestRequest(TestCase):

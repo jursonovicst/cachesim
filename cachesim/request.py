@@ -76,4 +76,4 @@ class Request:
         return f"{self._time} {self._hash} {self._size if self.fetched else '-'} {self._maxage if self.fetched else '-'}"
 
     def __copy__(self):
-        return type(self)(self.time, self.hash, self.size, self.maxage, self._fetched)
+        return type(self)(self._time, self._hash, self._size, self._maxage, self._fetched)

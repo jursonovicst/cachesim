@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import Optional, Iterable, Tuple
+from typing import Optional, Tuple
 
-from cachesim.cache import Request, Status
+from cachesim import Reader, Request
+from cachesim.cache import Status
 
 
 class Cache(ABC):
@@ -26,8 +27,8 @@ class Cache(ABC):
         """Total size of the cache."""
         return self.__totalsize
 
-    def map(self, requests: Iterable[Request]):
-        return map(self._recv, requests)
+    def map(self, reader: Reader):
+        return map(self._recv, reader)
 
     # def imap(self, requests: Iterable[Request], chunksize: int = 1):
     #     self.map(requests)

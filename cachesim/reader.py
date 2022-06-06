@@ -1,13 +1,21 @@
 from abc import ABC, abstractmethod
 from typing import Iterator
 
-from cachesim.cache import Request
+from cachesim import Request
 
 
 class Reader(ABC):
     """
 
     """
+
+    def __init__(self, totalcount: int):
+        assert totalcount >= 0, f"I expect a non negative totalsize, got '{totalcount}'"
+        self._totalcount = int(totalcount)
+
+    @property
+    def totalcount(self) -> int:
+        return self._totalcount
 
     def __iter__(self) -> Iterator:
         """
@@ -22,9 +30,4 @@ class Reader(ABC):
         Implement to provide elements
         :return: Requests
         """
-        pass
-
-    @property
-    @abstractmethod
-    def totalsize(self) -> int:
         pass
