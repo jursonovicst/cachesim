@@ -18,7 +18,7 @@ class RandomReader(Reader):
 
     @property
     def totalcount(self) -> int:
-        return self._totalsize
+        return self._totalcount
 
     def __iter__(self):
         self._counter = self.totalcount
