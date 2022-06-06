@@ -1,42 +1,50 @@
 import random
-import time
 from unittest import TestCase
 
 from cachesim.cache import Request
-from example.reader import RandomReader
+from example.reader import PopulationReader
 
 
-class TestRandomReader(TestCase):
-    def test_randomreader(self):
-        totalsize = 100
-        minsize = 20
-        maxsize = 200
-        maxagemin = 40
-        maxagemax = 200
-        reader = RandomReader(totalsize, sizegen=random.randint(minsize, maxsize),
-                              maxagegen=random.randint(maxagemin, maxagemax))
+class TestPopulationReader(TestCase):
+    def test_populationreader(self):
+        # create reader with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
+        totalcount = 1000
+        count = totalcount = 100
+        smin = 200
+        smax = 300
+        mmin = 60
+        mmax = 300
+        reader = PopulationReader(totalcount,
+                                  population=[Request(0,
+                                                      "%x" % random.getrandbits(8 * 8),
+                                                      random.randint(smin, smax),
+                                                      random.randint(mmin, mmax))
+                                              for x in range(0, count)],
+                                  weights=[1] * count)
 
-        self.assertEqual(totalsize, reader.totalsize)
-
-        count = 0
+        n = 0
         lastts = 0
+        uniq = {}
         for r in reader:
-            count += 1
+            n += 1
 
             self.assertIsInstance(r, Request)
 
-            self.assertAlmostEqual(time.time(), r.time, -1)
-            self.assertFalse(r.fetched)
-
-            r.fetched = True
-
-            self.assertGreater(r.size, minsize)
-            self.assertLess(r.size, maxsize)
-            self.assertGreater(r.maxage, maxagemin)
-            self.assertLess(r.maxage, maxagemax)
-
+            # self.assertAlmostEqual(time.time(), r.time, -1)
             # test monotonic
             self.assertGreater(r.time, lastts)
             lastts = r.time
 
-        self.assertEqual(totalsize, count)
+            # test uniq
+            uniq[r.hash] = r
+
+            self.assertFalse(r.fetched)
+            r.fetched = True
+
+            self.assertGreaterEqual(r.size, smin)
+            self.assertLessEqual(r.size, smax)
+            self.assertGreaterEqual(r.maxage, mmin)
+            self.assertLessEqual(r.maxage, mmax)
+
+        self.assertEqual(totalcount, n)
+        self.assertLessEqual(len(uniq), count)

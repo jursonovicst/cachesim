@@ -35,6 +35,6 @@ class PopulationReader(Reader):
             raise StopIteration
 
         self._counter -= 1
-        request = random.choices(self._population, self._weights, k=1)[0]
-        request.time = time.time()
-        return request
+        chosen = random.choices(self._population, self._weights, k=1)[0]
+
+        return Request(time=time.time(), hash=chosen._hash, size=chosen._size, maxage=chosen._maxage)
