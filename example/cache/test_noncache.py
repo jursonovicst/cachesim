@@ -3,7 +3,8 @@ from unittest import TestCase
 
 from matplotlib import pyplot as plt
 
-from cachesim.cache import Request, Status
+from cachesim import Request
+from cachesim.cache import Status
 from example.cache import NonCache
 from example.reader import PopulationReader
 
@@ -40,13 +41,13 @@ class TestNonCache(TestCase):
         stddev = 20
         reader = PopulationReader(totalcount,
                                   population=[Request(0,
-                                                      "%x" % random.getrandbits(8*8),
+                                                      "%x" % random.getrandbits(8 * 8),
                                                       int(random.normalvariate(mean, stddev)),
                                                       int(3600))
                                               for x in range(0, count)],
                                   weights=[1] * count)
-#        plt.plot([r.time for r in reader], 'x')
-#        plt.show()
+        #        plt.plot([r.time for r in reader], 'x')
+        #        plt.show()
         # create a cache, size limited to 10% of content base
         totalsize = int(totalcount * mean / 10)
         cache = NonCache()

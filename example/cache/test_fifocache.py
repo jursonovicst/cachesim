@@ -3,7 +3,8 @@ from unittest import TestCase
 
 import matplotlib.pyplot as plt
 
-from cachesim.cache import Request, Status
+from cachesim import Request
+from cachesim.cache import Status
 from example.cache import FIFOCache
 from example.reader import PopulationReader
 

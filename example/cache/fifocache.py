@@ -1,8 +1,8 @@
-from typing import Optional, Iterable
+from typing import Optional
 
-from tqdm import tqdm
-
-from cachesim.cache import Cache, Request, Status
+from cachesim import Request
+from cachesim.cache import Cache, Status
+from example.reader import ConstantReader
 
 
 class FIFOCache(Cache):
@@ -75,42 +75,16 @@ class FIFOCache(Cache):
 
 
 if __name__ == "__main__":
-
-    class PBarCache(FIFOCache):
-        """
-        Integrates a progress bar to keep track of the simulation.
-        """
-
-        def map(self, requests: Iterable[Request], total=None):
-            return map(self._recv, tqdm(requests, desc=self.__class__.__base__.__name__, total=total))
+    totalcount = 10000000
+    reader = ConstantReader(totalcount, Request(0, 'abc', 1, 3600))
 
 
-    class MyRequests:
-        """
-        Creates arbitrary client requests.
-        """
-
-        def __init__(self, n: int):
-            self.n = n
-
-        def __iter__(self):
-            self.request = Request(0, 'a', 1, 30)
-            return self
-
-        def __next__(self):
-            if self.n > 0:
-                self.n -= 1
-                return self.request
-            else:
-                raise StopIteration
+    class MyCache(PBarMixIn, FIFOCache): pass
 
 
-    cache = PBarCache(totalsize=1000)
+    cache = MyCache(totalsize=int(1000))
 
-    total = 10000000
-    client_requests = MyRequests(n=total)
-
-    req, sta, cac = zip(*list(cache.map(client_requests, total=total)))
+    req, sta, cac = zip(*list(cache.map(reader)))
 
     hit = sta.count(Status.HIT)
     print(f"Requests: {len(sta)}")
