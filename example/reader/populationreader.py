@@ -2,15 +2,13 @@ import random
 import time
 from typing import List
 
-from cachesim import Reader
-from cachesim.cache import Request
+from cachesim import Reader, Request
 
 
 class PopulationReader(Reader):
 
-    def __init__(self, totalsize: int, population: List[Request], weights: List[int]):
-        assert totalsize >= 0, f"I expect a non negative totalsize, got '{totalsize}'"
-        self._totalsize = int(totalsize)
+    def __init__(self, totalcount: int, population: List[Request], weights: List[int]):
+        super().__init__(totalcount)
 
         assert len(population) == len(
             weights), f"population size must match with weights len, got: '{len(population)}', '{len(weights)}'"
@@ -22,12 +20,8 @@ class PopulationReader(Reader):
 
         self._counter = 0
 
-    @property
-    def totalsize(self) -> int:
-        return self._totalsize
-
     def __iter__(self):
-        self._counter = self.totalsize
+        self._counter = self.totalcount
         return super().__iter__()
 
     def __next__(self) -> Request:
