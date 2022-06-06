@@ -1,16 +1,15 @@
 import random
 import time
 
-from cachesim import Reader
-from cachesim.cache import Request
+from cachesim import Reader, Request
 
 
 class RandomReader(Reader):
 
-    def __init__(self, totalsize: int, hashlen: int = 8, sizegen: callable = random.randint(1, 100),
+    def __init__(self, totalcount: int, hashlen: int = 8, sizegen: callable = random.randint(1, 100),
                  maxagegen: callable = random.randint(60, 300)):
-        assert totalsize >= 0, f"I expect a non negative totalsize, got '{totalsize}'"
-        self._totalsize = int(totalsize)
+        super().__init__(totalcount)
+
         assert hashlen > 0, f"I expect a positive hashlen, got '{hashlen}'"
         self._hashlen = int(hashlen)
         self._sizegen = sizegen
@@ -18,11 +17,11 @@ class RandomReader(Reader):
         self._counter = 0
 
     @property
-    def totalsize(self) -> int:
+    def totalcount(self) -> int:
         return self._totalsize
 
     def __iter__(self):
-        self._counter = self.totalsize
+        self._counter = self.totalcount
         return super().__iter__()
 
     def __next__(self) -> Request:
