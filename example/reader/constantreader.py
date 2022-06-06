@@ -9,7 +9,12 @@ class ConstantReader(Reader):
 
     def __init__(self, totalcount: int, request: Request):
         super().__init__(totalcount)
-        self._requests = iter([request] * totalcount)
+        self._request = request
+        self._requests = None
+
+    def __iter__(self):
+        self._requests = iter([self._request] * self.totalcount)
+        return super().__iter__()
 
     def __next__(self):
         return next(self._requests)
