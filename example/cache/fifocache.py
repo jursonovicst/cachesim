@@ -32,19 +32,28 @@ class FIFOCache(Cache):
         self._size = v
 
     def _lookup(self, requested: Request) -> Optional[Request]:
-        try:
-            return self._cache[requested.hash]
-        except KeyError:
+        if requested.hash not in self._cache:
             return None
+
+        return self._cache[requested.hash]
 
     def _admit(self, fetched: Request) -> bool:
         # check if object fit into the cache (should not normally happen, eviction should be triggered first)
         return self.size + fetched.size <= self.totalsize
 
     def _store(self, fetched: Request):
+        assert fetched.hash not in self._index, f"Object {fetched} already in cache: {self._cache[fetched.hash]}"
         self._cache[fetched.hash] = fetched
         self._index.append(fetched.hash)
         self.size += fetched.size
+
+    @property
+    def thlow(self):
+        return .9
+
+    @property
+    def thhigh(self):
+        return .95
 
     def _evict(self):
         """
@@ -52,14 +61,14 @@ class FIFOCache(Cache):
         """
 
         # evict till cache reaches 90%
-        while self.size / self.totalsize > 0.9:
-            hash_to_delete = self._index.pop(-1)
+        while self.size / self.totalsize > self.thlow:
+            hash_to_delete = self._index.pop(0)
             evicted = self._cache.pop(hash_to_delete)
             self.size -= evicted.size
 
     @property
     def _treshold(self) -> bool:
-        return self.size / self.totalsize > 0.95
+        return self.size / self.totalsize > self.thhigh
 
     def _log(self, request: Request, status: Status):
         return super()._log(request, status) + (self.size,)

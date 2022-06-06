@@ -1,5 +1,4 @@
 import random
-import time
 from unittest import TestCase
 
 import matplotlib.pyplot as plt
@@ -36,37 +35,44 @@ class TestFIFOCache(TestCase):
         requests, statuses, sizes = zip(*list(ret))
         self.assertEqual(Status.MISS, statuses[0])
         self.assertTrue(all(s == Status.HIT for s in statuses[1:]))
-        self.assertTrue(all(r == request for r in requests))
+        self.assertTrue(all(r.hash == request.hash for r in requests))
         self.assertTrue(all(r.maxage == maxage for r in requests))
         self.assertTrue(all(r.size == request.size for r in requests))
         self.assertTrue(all(r.fetched for r in requests))
-        self.assertTrue(all(r == request for r in requests))
+        self.assertTrue(all(r.hash == request.hash for r in requests))
 
     def test_chr(self):
         # create reader with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
-        count = 10000
-        popcount = int(count / 10)
+        totalcount = 1000
+        count = int(totalcount / 10)
         mean = 300
         stddev = 20
-        reader = PopulationReader(count,
-                                  population=[Request(time.time(),
-                                                      "%x" % random.getrandbits(128),
+        reader = PopulationReader(totalcount,
+                                  population=[Request(0,
+                                                      "%x" % random.getrandbits(8 * 8),
                                                       int(random.normalvariate(mean, stddev)),
                                                       int(3600))
-                                              for x in range(0, popcount)],
-                                  weights=[1] * popcount)
-
+                                              for x in range(0, count)],
+                                  weights=[1] * count)
+        #        plt.plot([r.time for r in reader], 'x')
+        #        plt.show()
         # create a cache, size limited to 10% of content base
-        totalsize = int(count * mean / 10)
+        totalsize = int(totalcount * mean / 10)
         cache = FIFOCache(totalsize=totalsize)
 
         ret = cache.map(reader)
         requests, statuses, sizes = zip(*list(ret))
-        chr = sum(s == Status.HIT for s in statuses) / count
+
+        chr = sum(s == Status.HIT for s in statuses) / totalcount
         print(f"CHR: {chr * 100:.2f}%")
 
+        self.assertGreater(chr, 0.8)
+
         plt.plot([r.time for r in requests], sizes)
+        plt.axhline(y=totalsize * cache.thhigh, color='r', linestyle='--')
+        plt.axhline(y=totalsize * cache.thlow, color='g', linestyle='--')
+
+        plt.ylabel("cache size")
         plt.ylim(0, totalsize)
-        plt.ylabel("cache size (B)")
-        plt.ylabel('time')
+        plt.xlabel('time')
         plt.show()

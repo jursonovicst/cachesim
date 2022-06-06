@@ -3,7 +3,7 @@ class Request:
     Represents the metadata of the cache request
     """
 
-    def __init__(self, time: float, hash: str, size: int, maxage: int):
+    def __init__(self, time: float, hash: str, size: int, maxage: int, fetched: bool = False):
         """
 
         :param time: Timestamp (unix time) at the request was placed.
@@ -18,10 +18,9 @@ class Request:
         # metadata only known after fetch
         self._size = size
         self._maxage = maxage
-        self._enter = None  # time at the object entered the cache (for TTL calculation)
 
         # misc
-        self._fetched = False  # object fetched (retrieved from origin)
+        self._fetched = fetched  # object fetched (retrieved from origin)
 
     @property
     def time(self) -> float:
@@ -50,19 +49,9 @@ class Request:
         assert self.fetched, f"cacheable cannot be known before object fetch!"
         return self.maxage > 0
 
-    @property
-    def enter(self) -> float:
-        assert self.fetched, f"enter cannot be known before object fetch!"
-        return self._enter
-
-    @enter.setter
-    def enter(self, time: float):
-        assert self.fetched, f"enter cannot be set before object fetch!"
-        self._enter = time
-
     def isexpired(self, now: float) -> bool:
-        assert self.enter is not None, f"Object must first enter the cache to determine if it is expired."
-        return self.enter + self.maxage < now
+        assert self.fetched, f"Object must first enter the cache to determine if it is expired."
+        return self.time + self.maxage < now
 
     @property
     def fetched(self) -> bool:
@@ -75,18 +64,16 @@ class Request:
     def __add__(self, other):
         """For sum() function"""
         assert isinstance(other, Request), f"Operator add has been implemented only for {self.__class__.__name__} type."
-        return self.size + other
+        return self.size + other.size
 
-    def __radd__(self, other):
-        """For sum() function"""
-        assert isinstance(other, int), f"Operator radd has been implemented only for {self.__class__.__name__} type."
-        return other + self.size
-
-    def __eq__(self, other):
-        """To implement in operator"""
-        assert isinstance(other, Request), f"Operator EQ has been implemented only for {self.__class__.__name__} type."
-        return self.hash == other.hash
+    # def __radd__(self, other):
+    #     """For sum() function"""
+    #     assert isinstance(other, int), f"Operator radd has been implemented only for {self.__class__.__name__} type."
+    #     return other + self.size
 
     def __str__(self):
         """For logging"""
-        return f"{self._time} {self.hash} {self.size if self.fetched else '-'} {self.maxage if self.fetched else '-'}"
+        return f"{self._time} {self._hash} {self._size if self.fetched else '-'} {self._maxage if self.fetched else '-'}"
+
+    def __copy__(self):
+        return type(self)(self.time, self.hash, self.size, self.maxage, self._fetched)

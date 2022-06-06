@@ -1,7 +1,11 @@
+import random
 from unittest import TestCase
+
+from matplotlib import pyplot as plt
 
 from cachesim.cache import Request, Status
 from example.cache import NonCache
+from example.reader import PopulationReader
 
 
 class TestNonCache(TestCase):
@@ -27,3 +31,35 @@ class TestNonCache(TestCase):
         self.assertTrue(all(r.size == len(content) for r in requests))
         self.assertTrue(all(r.fetched for r in requests))
         self.assertTrue(all(r == request for r in requests))
+
+    def test_chr(self):
+        # create reader with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
+        totalcount = 10000
+        count = int(totalcount / 10)
+        mean = 300
+        stddev = 20
+        reader = PopulationReader(totalcount,
+                                  population=[Request(0,
+                                                      "%x" % random.getrandbits(8*8),
+                                                      int(random.normalvariate(mean, stddev)),
+                                                      int(3600))
+                                              for x in range(0, count)],
+                                  weights=[1] * count)
+#        plt.plot([r.time for r in reader], 'x')
+#        plt.show()
+        # create a cache, size limited to 10% of content base
+        totalsize = int(totalcount * mean / 10)
+        cache = NonCache()
+
+        ret = cache.map(reader)
+
+        requests, statuses = zip(*list(ret))
+
+        chr = sum(s == Status.HIT for s in statuses) / totalcount
+        print(f"CHR: {chr * 100:.2f}%")
+        self.assertEqual(0, chr)
+
+        plt.plot([r.time for r in requests], range(0, totalcount), 'x')
+        plt.ylabel("request no.")
+        plt.xlabel('time')
+        plt.show()

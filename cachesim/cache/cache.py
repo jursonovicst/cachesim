@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import copy
 from typing import Optional, Iterable, Tuple
 
 from cachesim.cache import Request, Status
@@ -64,15 +65,17 @@ class Cache(ABC):
         :param request: The request
         :return: Request status (Status).
         """
-
-        # check the object in the cache
-        stored = self._lookup(request)
+        # check the object in the cache, make a copy to overwrite attributes.
+        stored = copy(self._lookup(request))
 
         # in cache?
         if stored is not None:
 
             # retrieved from cache, ttl expired?
             if not stored.isexpired(request.time):
+                # update timestamp to reflect current time
+                stored.time = request.time
+
                 # "serv" object from cache
                 return self._log(stored, Status.HIT)
 
@@ -86,8 +89,7 @@ class Cache(ABC):
             if self._treshold:
                 self._evict()
 
-            # store object, update cache enter time for TTL
-            request.enter = request.time
+            # store object
             self._store(request)
 
             # "serv" object from origin
