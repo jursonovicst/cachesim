@@ -1,7 +1,7 @@
 import random
 from unittest import TestCase
 
-from cachesim.cache import Request
+from cachesim import Request
 from example.reader import PopulationReader
 
 

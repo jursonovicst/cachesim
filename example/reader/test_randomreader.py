@@ -2,7 +2,7 @@ import random
 import time
 from unittest import TestCase
 
-from cachesim.cache import Request
+from cachesim import Request
 from example.reader import RandomReader
 
 
@@ -16,7 +16,7 @@ class TestRandomReader(TestCase):
         reader = RandomReader(totalsize, sizegen=random.randint(minsize, maxsize),
                               maxagegen=random.randint(maxagemin, maxagemax))
 
-        self.assertEqual(totalsize, reader.totalsize)
+        self.assertEqual(totalsize, reader.totalcount)
 
         count = 0
         lastts = 0
