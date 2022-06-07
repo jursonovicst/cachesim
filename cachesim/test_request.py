@@ -110,3 +110,23 @@ class TestRequest(TestCase):
             # self.assertEqual(request_a1, request_a2)
             # self.assertNotEqual(request_a1, request_b)
             # self.assertEqual(0, request_a1 + request_a2)
+
+    def test_fromlist(self):
+        a4 = [0, 'abc', 1, 60]
+        request = Request.fromlist(a4)
+
+        self.assertIsInstance(request, Request)
+        self.assertEqual(request.time, 0)
+        self.assertEqual(request.hash, 'abc')
+        self.assertEqual(request._size, 1)
+        self.assertEqual(request._maxage, 60)
+
+        a5 = [0, 'abc', 1, 60, True]
+        request = Request.fromlist(a5)
+
+        self.assertIsInstance(request, Request)
+        self.assertEqual(request.time, 0)
+        self.assertEqual(request.hash, 'abc')
+        self.assertEqual(request.size, 1)
+        self.assertEqual(request.maxage, 60)
+        self.assertTrue(request.fetched)

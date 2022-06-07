@@ -3,6 +3,11 @@ class Request:
     Represents the metadata of the cache request
     """
 
+    @classmethod
+    def fromlist(cls, l: list):
+        assert len(l) >= 4, f"I need at least 4 elements, got '{l}'"
+        return cls(l[0], l[1], l[2], l[3], l[4] if len(l) > 4 else False)
+
     def __init__(self, time: float, hash: str, size: int, maxage: int, fetched: bool = False):
         """
 
