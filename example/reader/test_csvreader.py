@@ -7,7 +7,7 @@ from example.reader import CSVReader
 class TestCSVReader(TestCase):
 
     def test_csvreader(self):
-        csvreader = CSVReader(totalcount=12, csvfile='reader/sample.csv')
+        csvreader = CSVReader(totalcount=12, csvfile='example/reader/sample.csv')
 
         count = 0
         for request in csvreader:
