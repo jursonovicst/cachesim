@@ -32,7 +32,7 @@ class FIFOCache(Cache):
         self._size = v
 
     def _lookup(self, requested: Request) -> Optional[Request]:
-        if requested.hash not in self._cache:
+        if requested.hash not in self._index:
             return None
 
         return self._cache[requested.hash]
