@@ -8,7 +8,7 @@ class TestProtectedFIFOCache(TestCase):
     def test_protectedfifocache(self):
         totalsize = 200
         limit = 0.2
-        cache = ProtectedFIFOCache(totalsize, limit=limit)
+        cache = ProtectedFIFOCache(totalsize, limit=int(totalsize * limit))
         maxage = 300
         small = Request(0, 'small', int(totalsize * limit * 0.9), maxage)
         big = Request(0, 'big', int(totalsize * limit * 1.1), maxage)
