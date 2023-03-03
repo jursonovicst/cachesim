@@ -1,35 +1,33 @@
-from cachesim import Obj, Status
 import logging
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from cachesim import Obj, Status
+
 
 class Cache(ABC):
     """
-    Abstract class to provide structure and basic functionalities. Use this to implement your own cache model.
+    Abstract class to provide structure and basic functionalities for cache emulation. Inherit to implement your own
+    cache model.
     """
 
     def __init__(self, maxsize: int, logger: logging.Logger = None):
         """
-        Cache initialization. Overload the init method for custom initialization.
+        Cache initialization. Overload the init method for custom settings.
 
-        :param maxsize: Maximum size of the cache.
-        :param logger: If not None, use this logger, otherwise create one.
+        :param maxsize: maximum size of the cache.
+        :param logger: logger to use instead of the own one.
         """
 
         # max cache size
-        assert maxsize > 0 and isinstance(maxsize, int), f"Cache must have positive integer size: '{maxsize}' received!"
+        assert maxsize > 0 and isinstance(maxsize, int), f"Cache size must be positive integer : '{maxsize}' received!"
         self.__maxsize = maxsize
 
         # keep track of the time
         self.__clock = None
 
         # setup logging
-        if logger is None:
-            self.__logger = logging.getLogger(name=self.__class__.__name__)
-            # self._logger.setLevel(logging.DEBUG)  TODO: FIX this
-        else:
-            self.__logger = logger
+        self.__logger = logging.getLogger(name=self.__class__.__name__) if logger is None else logger
 
     @property
     def maxsize(self) -> int:
@@ -49,7 +47,7 @@ class Cache(ABC):
 
     def recv(self, time: float, obj: Obj) -> Status:
         """
-        Call this function to place a request to the cache.
+        Call this function to place a request towards the cache.
 
         :param time: Time (epoch) of the object request.
         :param obj: The object (Obj) requested.
@@ -60,10 +58,10 @@ class Cache(ABC):
         self.clock = time
 
         # try to get the object from cache
-        stored = self._lookup(obj)
-        if stored is not None:
 
-            # retrieved from cache, check expires
+        if (stored := self._lookup(obj)) is not None:
+
+            # retrieved from cache, check object expire
             if not stored.isexpired(self.clock):
                 # HIT, "serv" object from cache
                 self.__log(stored, Status.HIT)
@@ -83,6 +81,7 @@ class Cache(ABC):
             return Status.MISS
 
         else:
+            # object not cacheable, log pass
             self.__log(obj, Status.PASS)
             return Status.PASS
 
@@ -91,7 +90,7 @@ class Cache(ABC):
         """
         Implement this method to provide a cache admission policy.
 
-        :param fetched: Object fetched.
+        :param fetched: Object (Obj) fetched.
         :return: True, if object may enter the cache, False for bypass the cache and go for PASS.
         """
         pass
@@ -102,8 +101,8 @@ class Cache(ABC):
         Implement this method to provide a caching function. In this state, the content of the object is not known.
         Return the cached object.
 
-        :param requested: Object requested.
-        :return: The object from the cache.
+        :param requested: Object (Obj) requested.
+        :return: The object (Obj) from the cache.
         """
         pass
 
@@ -112,7 +111,7 @@ class Cache(ABC):
         """
         Implement this method to store objects.
 
-        :param fetched: Object fetched from origin.
+        :param fetched: Object (Obj) fetched from origin.
         """
         pass
 

@@ -1,12 +1,19 @@
 class Obj:
-    def __init__(self, index, size: int, maxage: int):
+    """
+    Represents an object only by his caching metadata (size, time accessed, cacheable, etc...), without the bytes of the
+    object itself. Objects can be requested from or stored by a cache, therefore part of the metadata (like size, ...)
+    can be accessed only after the object marked as fetched (see the .fetcher property). Any attempt accessing not to be
+    known metadata parts will result an assertion!
+    """
+
+    def __init__(self, hash, size: int, maxage: int):
         """
 
-        :param index: Uniq identifier of the object (hash key).
+        :param hash: Uniq identifier of the object (hash key).
         :param size: Size of the object.
-        :param maxage: Maximum caching time, if non positive, not cacheable.
+        :param maxage: Maximum caching time. Any non-positive number represents not cacheable objects.
         """
-        self._index = index
+        self._hash = hash
         self._size = size
         self._maxage = maxage
 
@@ -14,8 +21,8 @@ class Obj:
         self._fetched = False  # object retrieved from origin
 
     @property
-    def index(self):
-        return self._index
+    def hash(self):
+        return self._hash
 
     @property
     def size(self) -> int:
@@ -64,7 +71,7 @@ class Obj:
     def __eq__(self, other):
         """To implement in operator"""
         assert isinstance(other, Obj), f"Operator EQ has been implemented only for Obj type."
-        return self.index == other.index
+        return self.hash == other.hash
 
     def __str__(self):
-        return f"{self.index} {self._size}"
+        return f"{self.hash} {self._size}"
