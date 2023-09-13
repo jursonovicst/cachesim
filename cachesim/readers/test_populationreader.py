@@ -2,12 +2,12 @@ import random
 from unittest import TestCase
 
 from cachesim import Request
-from example.reader import PopulationReader
+from cachesim.readers import PopulationReader
 
 
 class TestPopulationReader(TestCase):
     def test_populationreader(self):
-        # create reader with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
+        # create readers with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
         totalcount = 1000
         count = totalcount = 100
         smin = 200

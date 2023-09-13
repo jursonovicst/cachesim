@@ -1,13 +1,13 @@
 from typing import Optional
 
 from cachesim import Request
-from cachesim.cache import Cache, Status, PBarMixIn
-from example.reader import RandomReader
+from cachesim import Cache, Status, PBarMixIn
+from cachesim.readers import RandomReader
 
 
 class LFUCache(Cache):
     """
-    LFU (least frequently used) cache model.
+    LFU (least frequently used) caches model.
     """
 
     def __init__(self, totalsize: int):
@@ -16,10 +16,10 @@ class LFUCache(Cache):
         # store metadata indexed by hash
         self._cache = {}    # hash: request
 
-        # keep track of indexes entering the cache and usage count
+        # keep track of indexes entering the caches and usage count
         self._index = {}    # hash: count
 
-        # actual size of the cache
+        # actual size of the caches
         self._size = 0
 
     @property
@@ -40,11 +40,11 @@ class LFUCache(Cache):
         return self._cache[requested.hash]
 
     def _admit(self, fetched: Request) -> bool:
-        # check if object fit into the cache (should not normally happen, eviction should be triggered first)
+        # check if object fit into the caches (should not normally happen, eviction should be triggered first)
         return self.size + fetched.size <= self.totalsize
 
     def _store(self, fetched: Request):
-        assert fetched.hash not in self._index, f"Object {fetched} already in cache: {self._cache[fetched.hash]}"
+        assert fetched.hash not in self._index, f"Object {fetched} already in caches: {self._cache[fetched.hash]}"
         self._index[fetched.hash] = 0
         self._cache[fetched.hash] = fetched
         self.size += fetched.size
@@ -59,10 +59,10 @@ class LFUCache(Cache):
 
     def _evict(self):
         """
-        LFU cache, evict least frequently used objects first
+        LFU caches, evict least frequently used objects first
         """
 
-        # evict till cache reaches 90%
+        # evict till caches reaches 90%
         while self.size / self.totalsize > self.thlow:
             hash_to_delete = min(self._index, key=self._index.get)
             self._index.pop(hash_to_delete)
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     class MyCache(PBarMixIn, LFUCache):
         pass
 
-    # cache size is 10% of content base (2 byte hashlen allows 2^16 different objects)
+    # caches size is 10% of content base (2 byte hashlen allows 2^16 different objects)
     # chr should be around 10%
     cache = MyCache(totalsize=int(2**16*0.1))
 

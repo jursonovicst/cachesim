@@ -1,24 +1,24 @@
 from typing import Optional
 
 from cachesim import Request
-from cachesim.cache import Cache, Status, PBarMixIn
-from example.reader import ConstantReader
+from cachesim import Cache, Status, PBarMixIn
+from cachesim.readers import ConstantReader
 
 
 class NonCache(Cache):
     """
-    Very basic example of a cache, which actually does not cache at all.
+    Very basic example of a caches, which actually does not caches at all.
     """
 
     def __init__(self):
         super().__init__(totalsize=0)
 
     def _lookup(self, requested: Request) -> Optional[Request]:
-        # object is never in cache
+        # object is never in caches
         return None
 
     def _admit(self, fetched: Request) -> bool:
-        # never allow object entering the cache
+        # never allow object entering the caches
         return False
 
     def _store(self, fetched: Request):

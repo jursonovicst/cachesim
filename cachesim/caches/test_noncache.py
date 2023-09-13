@@ -3,10 +3,9 @@ from unittest import TestCase
 
 from matplotlib import pyplot as plt
 
-from cachesim import Request
-from cachesim.cache import Status
-from example.cache import NonCache
-from example.reader import PopulationReader
+from cachesim import Request, Status
+from cachesim.caches import NonCache
+from cachesim.readers import PopulationReader
 
 
 class TestNonCache(TestCase):
@@ -34,7 +33,7 @@ class TestNonCache(TestCase):
         self.assertTrue(all(r == request for r in requests))
 
     def test_chr(self):
-        # create reader with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
+        # create readers with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
         totalcount = 10000
         count = int(totalcount / 10)
         mean = 300
@@ -46,9 +45,9 @@ class TestNonCache(TestCase):
                                                       int(3600))
                                               for x in range(0, count)],
                                   weights=[1] * count)
-        #        plt.plot([r.time for r in reader], 'x')
+        #        plt.plot([r.time for r in readers], 'x')
         #        plt.show()
-        # create a cache, size limited to 10% of content base
+        # create a caches, size limited to 10% of content base
         totalsize = int(totalcount * mean / 10)
         cache = NonCache()
 

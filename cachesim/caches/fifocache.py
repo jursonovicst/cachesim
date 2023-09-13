@@ -1,13 +1,13 @@
 from typing import Optional
 
 from cachesim import Request
-from cachesim.cache import Cache, Status, PBarMixIn
-from example.reader import ConstantReader
+from cachesim import Cache, Status, PBarMixIn
+from cachesim.readers import ConstantReader
 
 
 class FIFOCache(Cache):
     """
-    First in First out cache model.
+    First in First out caches model.
     """
 
     def __init__(self, totalsize: int):
@@ -16,10 +16,10 @@ class FIFOCache(Cache):
         # store metadata indexed by hash
         self._cache = {}
 
-        # keep track of indexes entering the cache
+        # keep track of indexes entering the caches
         self._index = []
 
-        # actual size of the cache
+        # actual size of the caches
         self._size = 0
 
     @property
@@ -38,11 +38,11 @@ class FIFOCache(Cache):
         return self._cache[requested.hash]
 
     def _admit(self, fetched: Request) -> bool:
-        # check if object fit into the cache (should not normally happen, eviction should be triggered first)
+        # check if object fit into the caches (should not normally happen, eviction should be triggered first)
         return self.size + fetched.size <= self.totalsize
 
     def _store(self, fetched: Request):
-        assert fetched.hash not in self._index, f"Object {fetched} already in cache: {self._cache[fetched.hash]}"
+        assert fetched.hash not in self._index, f"Object {fetched} already in caches: {self._cache[fetched.hash]}"
         self._cache[fetched.hash] = fetched
         self._index.append(fetched.hash)
         self.size += fetched.size
@@ -57,10 +57,10 @@ class FIFOCache(Cache):
 
     def _evict(self):
         """
-        FIFO cache, evict oldest objects first
+        FIFO caches, evict oldest objects first
         """
 
-        # evict till cache reaches 90%
+        # evict till caches reaches 90%
         while self.size / self.totalsize > self.thlow:
             hash_to_delete = self._index.pop(0)
             evicted = self._cache.pop(hash_to_delete)

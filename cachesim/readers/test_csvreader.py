@@ -1,13 +1,13 @@
 from unittest import TestCase
 
 from cachesim import Request
-from example.reader import CSVReader
+from cachesim.readers import CSVReader
 
 
 class TestCSVReader(TestCase):
 
     def test_csvreader(self):
-        csvreader = CSVReader(totalcount=12, csvfile='example/reader/sample.csv')
+        csvreader = CSVReader(totalcount=12, csvfile='cachesim/readers/sample.csv')
 
         count = 0
         for request in csvreader:

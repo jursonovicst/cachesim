@@ -3,7 +3,7 @@ import time
 from unittest import TestCase
 
 from cachesim import Request
-from example.reader import RandomReader
+from cachesim.readers import RandomReader
 
 
 class TestRandomReader(TestCase):

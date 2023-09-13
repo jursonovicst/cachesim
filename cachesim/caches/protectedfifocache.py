@@ -1,12 +1,12 @@
 from cachesim import Request
-from cachesim.cache import Status, PBarMixIn
-from example.cache import FIFOCache
-from example.reader import ConstantReader
+from cachesim import Status, PBarMixIn
+from cachesim.caches import FIFOCache
+from cachesim.readers import ConstantReader
 
 
 class ProtectedFIFOCache(FIFOCache):
     """
-    Same as FIFOCache, but big (> totalsize * limit) object are not allowed to enter the cache to avoid eviction of a
+    Same as FIFOCache, but big (> totalsize * limit) object are not allowed to enter the caches to avoid eviction of a
     large number of small objects.
     """
 
@@ -17,7 +17,7 @@ class ProtectedFIFOCache(FIFOCache):
         self._limit = limit
 
     def _admit(self, fetched: Request) -> bool:
-        # allow only small objects to enter the cache
+        # allow only small objects to enter the caches
         if fetched.size > self._limit:
             return False
 

@@ -3,10 +3,9 @@ from unittest import TestCase
 
 import matplotlib.pyplot as plt
 
-from cachesim import Request
-from cachesim.cache import Status
-from example.cache import FIFOCache
-from example.reader import PopulationReader
+from cachesim import Request, Status
+from cachesim.caches import FIFOCache
+from cachesim.readers import PopulationReader
 
 
 class TestFIFOCache(TestCase):
@@ -43,7 +42,7 @@ class TestFIFOCache(TestCase):
         self.assertTrue(all(r.hash == request.hash for r in requests))
 
     def test_chr(self):
-        # create reader with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
+        # create readers with 100, in avg. 300 Byte large random requests. Total content base is around 300kB
         totalcount = 1000
         count = int(totalcount / 10)
         mean = 300
@@ -55,9 +54,9 @@ class TestFIFOCache(TestCase):
                                                       int(3600))
                                               for x in range(0, count)],
                                   weights=[1] * count)
-        #        plt.plot([r.time for r in reader], 'x')
+        #        plt.plot([r.time for r in readers], 'x')
         #        plt.show()
-        # create a cache, size limited to 10% of content base
+        # create a caches, size limited to 10% of content base
         totalsize = int(totalcount * mean / 10)
         cache = FIFOCache(totalsize=totalsize)
 
@@ -73,7 +72,7 @@ class TestFIFOCache(TestCase):
         plt.axhline(y=totalsize * cache.thhigh, color='r', linestyle='--')
         plt.axhline(y=totalsize * cache.thlow, color='g', linestyle='--')
 
-        plt.ylabel("cache size")
+        plt.ylabel("caches size")
         plt.ylim(0, totalsize)
         plt.xlabel('time')
         plt.show()

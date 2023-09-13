@@ -1,6 +1,6 @@
 class Request:
     """
-    Represents the metadata of the cache request
+    Represents the metadata of the caches request
     """
 
     @classmethod
@@ -14,7 +14,7 @@ class Request:
         :param time: Timestamp (unix time) at the request was placed.
         :param hash: Uniq identifier of the requested object (hash).
         :param size: Size of the requested object.
-        :param maxage: Maximum caching time. For non cacheable objects, use a non positive value.
+        :param maxage: Maximum caching time. For non cacheable objects, use a non-positive value.
         """
         # metadata to be known before fetch
         self._time = time
@@ -55,7 +55,7 @@ class Request:
         return self.maxage > 0
 
     def isexpired(self, now: float) -> bool:
-        assert self.fetched, f"Object must first enter the cache to determine if it is expired."
+        assert self.fetched, f"Object must first enter the caches to determine if it is expired."
         return self.time + self.maxage < now
 
     @property

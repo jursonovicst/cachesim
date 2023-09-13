@@ -3,7 +3,7 @@ from copy import copy
 from typing import Optional, Tuple
 
 from cachesim import Reader, Request
-from cachesim.cache import Status
+from cachesim import Status
 
 
 class Cache(ABC):
@@ -15,16 +15,16 @@ class Cache(ABC):
         """
         Cache initialization. Overload the init method for custom implementation.
 
-        :param totalsize: Size of the cache.
+        :param totalsize: Size of the caches.
         """
-        # check cache size (we allow 0 size for theoretical plausibility)
-        assert totalsize >= 0 and isinstance(totalsize,
-                                             int), f"Cache must have non negative integer size: '{totalsize}' received!"
+        # check caches size (we allow 0 size for theoretical plausibility)
+        if totalsize < 0:
+            raise ValueError(f"Invalid caches size {totalsize}!")
         self.__totalsize = totalsize
 
     @property
     def totalsize(self) -> int:
-        """Total size of the cache."""
+        """Total size of the caches."""
         return self.__totalsize
 
     def map(self, reader: Reader):
@@ -61,29 +61,29 @@ class Cache(ABC):
 
     def _recv(self, request: Request) -> Tuple[Request, Status]:
         """
-        Processes a single request against the cache.
+        Processes a single request against the caches.
 
         :param request: The request
         :return: Request status (Status).
         """
-        # check the object in the cache, make a copy to overwrite attributes.
+        # check the object in the caches, make a copy to overwrite attributes.
         stored = copy(self._lookup(request))
 
-        # in cache?
+        # in caches?
         if stored is not None:
 
-            # retrieved from cache, ttl expired?
+            # retrieved from caches, ttl expired?
             if not stored.isexpired(request.time):
                 # update timestamp to reflect current time
                 stored.time = request.time
 
-                # "serv" object from cache
+                # "serv" object from caches
                 return self._log(stored, Status.HIT)
 
-        # MISS: not in cache or expired --> just simulate fetch!
+        # MISS: not in caches or expired --> just simulate fetch!
         request.fetched = True
 
-        # cache admission
+        # caches admission
         if request.cacheable and request.size <= self.totalsize and self._admit(request):
 
             # treshold?
@@ -103,23 +103,23 @@ class Cache(ABC):
     @abstractmethod
     def _lookup(self, requested: Request) -> Optional[Request]:
         """
-        Implement this method to provide a lookup method to find objects in cache. At this time, the content of the
+        Implement this method to provide a lookup method to find objects in caches. At this time, the content of the
         object is not known, therefore not all properties of request can be used.
 
         Returns the cached object.
 
         :param requested: Object requested.
-        :return: The object from the cache or None in case of miss.
+        :return: The object from the caches or None in case of miss.
         """
         pass
 
     @abstractmethod
     def _admit(self, fetched: Request) -> bool:
         """
-        Implement this method to provide a cache admission policy.
+        Implement this method to provide a caches admission policy.
 
         :param fetched: Object fetched.
-        :return: True, if object may enter the cache, False for bypass the cache and go for PASS.
+        :return: True, if object may enter the caches, False for bypass the caches and go for PASS.
         """
         pass
 
@@ -136,7 +136,7 @@ class Cache(ABC):
     @abstractmethod
     def _treshold(self) -> bool:
         """
-        Implement this property to provide a treshold for triggering cache evictions
+        Implement this property to provide a treshold for triggering caches evictions
         :return:
         """
         pass
@@ -144,7 +144,7 @@ class Cache(ABC):
     @abstractmethod
     def _evict(self):
         """
-        Implement this method to provide cache eviction.
+        Implement this method to provide caches eviction.
         """
         pass
 

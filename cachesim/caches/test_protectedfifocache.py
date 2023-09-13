@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from cachesim import Request
-from example.cache import ProtectedFIFOCache
+from cachesim.caches import ProtectedFIFOCache
 
 
 class TestProtectedFIFOCache(TestCase):
