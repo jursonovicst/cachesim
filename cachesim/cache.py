@@ -15,12 +15,9 @@ class Cache(ABC):
         """
         Cache initialization. Overload the init method for custom implementation.
 
-        :param totalsize: Size of the caches.
+        :param totalsize: size of the caches, non-positive value will disable caching.
         """
-        # check caches size (we allow 0 size for theoretical plausibility)
-        if totalsize < 0:
-            raise ValueError(f"Invalid caches size {totalsize}!")
-        self.__totalsize = totalsize
+        self.__totalsize = totalsize if totalsize > 0 else 0
 
     @property
     def totalsize(self) -> int:
@@ -67,7 +64,7 @@ class Cache(ABC):
         :return: Request status (Status).
         """
         # check the object in the caches, make a copy to overwrite attributes.
-        stored = copy(self._lookup(request))
+        stored = self._lookup(request)
 
         # in caches?
         if stored is not None:
@@ -75,6 +72,7 @@ class Cache(ABC):
             # retrieved from caches, ttl expired?
             if not stored.isexpired(request.time):
                 # update timestamp to reflect current time
+                stored = copy(stored)
                 stored.time = request.time
 
                 # "serv" object from caches
