@@ -9,13 +9,13 @@ class Reader(ABC):
 
     """
 
-    def __init__(self, totalcount: int):
-        assert totalcount >= 0, f"I expect a non negative totalsize, got '{totalcount}'"
-        self._totalcount = int(totalcount)
+    def __init__(self, count: int):
+        assert count >= 0, f"I expect a non negative totalsize, got '{count}'"
+        self._count = int(count)
 
     @property
-    def totalcount(self) -> int:
-        return self._totalcount
+    def count(self) -> int:
+        return self._count
 
     def __iter__(self) -> Iterator:
         """

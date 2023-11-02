@@ -8,8 +8,8 @@ from cachesim import Reader, Request
 
 class CSVReader(Reader):
 
-    def __init__(self, totalcount: int, csvfile: str):
-        super().__init__(totalcount=totalcount)
+    def __init__(self, count: int, csvfile: str):
+        super().__init__(count=count)
 
         assert isfile(csvfile) and access(csvfile, R_OK), f"File '{csvfile}' doesn't exist or isn't readable"
         self._csvfile = csvfile

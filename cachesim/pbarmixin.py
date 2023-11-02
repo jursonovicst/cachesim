@@ -9,4 +9,4 @@ class PBarMixIn:
     """
 
     def map(self, reader: Reader):
-        return map(super()._recv, tqdm(reader, desc=self.__class__.__name__, total=reader.totalcount))
+        return map(super()._recv, tqdm(reader, desc=self.__class__.__name__, total=reader.count))

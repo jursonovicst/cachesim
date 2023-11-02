@@ -4,8 +4,8 @@ from unittest import TestCase
 import matplotlib.pyplot as plt
 
 from cachesim import Request, Status
-from cachesim.caches import FIFOCache
 from cachesim.readers import PopulationReader
+from .fifocache import FIFOCache
 
 
 class TestFIFOCache(TestCase):
@@ -32,7 +32,7 @@ class TestFIFOCache(TestCase):
 
         cache = FIFOCache(totalsize)
         ret = cache.map([request] * 100)
-        requests, statuses, sizes = zip(*list(ret))
+        requests, statuses = zip(*list(ret))
         self.assertEqual(Status.MISS, statuses[0])
         self.assertTrue(all(s == Status.HIT for s in statuses[1:]))
         self.assertTrue(all(r.hash == request.hash for r in requests))
@@ -56,23 +56,23 @@ class TestFIFOCache(TestCase):
                                   weights=[1] * count)
         #        plt.plot([r.time for r in readers], 'x')
         #        plt.show()
-        # create a caches, size limited to 10% of content base
+        # create a examples2, size limited to 10% of content base
         totalsize = int(totalcount * mean / 10)
         cache = FIFOCache(totalsize=totalsize)
 
         ret = cache.map(reader)
-        requests, statuses, sizes = zip(*list(ret))
+        requests, statuses = zip(*list(ret))
 
         chr = sum(s == Status.HIT for s in statuses) / totalcount
         print(f"CHR: {chr * 100:.2f}%")
 
         self.assertGreater(chr, 0.8)
 
-        plt.plot([r.time for r in requests], sizes)
+        plt.plot([r.time for r in requests])
         plt.axhline(y=totalsize * cache.thhigh, color='r', linestyle='--')
         plt.axhline(y=totalsize * cache.thlow, color='g', linestyle='--')
 
-        plt.ylabel("caches size")
+        plt.ylabel("examples2 size")
         plt.ylim(0, totalsize)
         plt.xlabel('time')
         plt.show()

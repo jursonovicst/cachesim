@@ -7,8 +7,8 @@ from cachesim import Reader, Request
 
 class PopulationReader(Reader):
 
-    def __init__(self, totalcount: int, population: List[Request], weights: List[int]):
-        super().__init__(totalcount)
+    def __init__(self, count: int, population: List[Request], weights: List[int]):
+        super().__init__(count)
 
         assert len(population) == len(
             weights), f"population size must match with weights len, got: '{len(population)}', '{len(weights)}'"

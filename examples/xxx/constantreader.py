@@ -7,8 +7,8 @@ class ConstantReader(Reader):
     """
     """
 
-    def __init__(self, totalcount: int, request: Request):
-        super().__init__(totalcount)
+    def __init__(self, count: int, request: Request):
+        super().__init__(count)
         self._request = request
         self._requests = None
 

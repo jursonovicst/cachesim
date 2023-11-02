@@ -1,6 +1,9 @@
+from typing import Hashable
+
+
 class Request:
     """
-    Represents the metadata of the caches request
+    Represents the metadata of the examples2 request
     """
 
     @classmethod
@@ -8,7 +11,7 @@ class Request:
         assert len(l) >= 4, f"I need at least 4 elements, got '{l}'"
         return cls(l[0], l[1], l[2], l[3], l[4] if len(l) > 4 else False)
 
-    def __init__(self, time: float, hash: str, size: int, maxage: int, fetched: bool = False):
+    def __init__(self, time: float, hash: Hashable, size: int, maxage: int, fetched: bool = False):
         """
 
         :param time: Timestamp (unix time) at the request was placed.
@@ -36,7 +39,7 @@ class Request:
         self._time = v
 
     @property
-    def hash(self) -> str:
+    def hash(self) -> Hashable:
         return self._hash
 
     @property
@@ -55,7 +58,7 @@ class Request:
         return self.maxage > 0
 
     def isexpired(self, now: float) -> bool:
-        assert self.fetched, f"Object must first enter the caches to determine if it is expired."
+        assert self.fetched, f"Object must first enter the examples2 to determine if it is expired."
         return self.time + self.maxage < now
 
     @property

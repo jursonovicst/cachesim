@@ -1,25 +1,25 @@
 from typing import Optional
 
-from cachesim import Request
 from cachesim import Cache, Status, PBarMixIn
-from cachesim.readers import RandomReader
+from cachesim import Request
+from generator import Generator
 
 
 class LFUCache(Cache):
     """
-    LFU (least frequently used) caches model.
+    LFU (least frequently used) model. inefficient implementation.
     """
 
-    def __init__(self, totalsize: int):
-        super().__init__(totalsize)
+    def __init__(self, totalsize: int, **kwargs):
+        super().__init__(totalsize=totalsize, **kwargs)
 
         # store metadata indexed by hash
-        self._cache = {}    # hash: request
+        self._cache = {}  # hash: request
 
-        # keep track of indexes entering the caches and usage count
-        self._index = {}    # hash: count
+        # keep track of indexes entering the examples2 and usage count
+        self._index = {}  # hash: count
 
-        # actual size of the caches
+        # actual size of the examples2
         self._size = 0
 
     @property
@@ -40,11 +40,11 @@ class LFUCache(Cache):
         return self._cache[requested.hash]
 
     def _admit(self, fetched: Request) -> bool:
-        # check if object fit into the caches (should not normally happen, eviction should be triggered first)
+        # check if object fit into the examples2 (should not normally happen, eviction should be triggered first)
         return self.size + fetched.size <= self.totalsize
 
     def _store(self, fetched: Request):
-        assert fetched.hash not in self._index, f"Object {fetched} already in caches: {self._cache[fetched.hash]}"
+        assert fetched.hash not in self._index, f"Object {fetched} already in examples2: {self._cache[fetched.hash]}"
         self._index[fetched.hash] = 0
         self._cache[fetched.hash] = fetched
         self.size += fetched.size
@@ -59,10 +59,10 @@ class LFUCache(Cache):
 
     def _evict(self):
         """
-        LFU caches, evict least frequently used objects first
+        LFU examples2, evict least frequently used objects first
         """
 
-        # evict till caches reaches 90%
+        # evict till examples2 reaches 90%
         while self.size / self.totalsize > self.thlow:
             hash_to_delete = min(self._index, key=self._index.get)
             self._index.pop(hash_to_delete)
@@ -73,23 +73,20 @@ class LFUCache(Cache):
     def _treshold(self) -> bool:
         return self.size / self.totalsize > self.thhigh
 
-    def _log(self, request: Request, status: Status):
-        return super()._log(request, status) + (self.size,)
-
 
 if __name__ == "__main__":
-    totalcount = 200000
-    reader = RandomReader(totalcount, hashlen=2, sizegen=int(1))
-
+    reader = Generator(10000000, hashgen=lambda: "tom", sizegen=lambda: 1, maxagegen=lambda: 1)
+    #reader = StaticGenerator(10000000, Request(0, 'abc', 1, 3600))
 
     class MyCache(PBarMixIn, LFUCache):
         pass
 
-    # caches size is 10% of content base (2 byte hashlen allows 2^16 different objects)
-    # chr should be around 10%
-    cache = MyCache(totalsize=int(2**16*0.1))
 
-    req, sta, cac = zip(*list(cache.map(reader)))
+    # examples2 size is 10% of content base (2 byte hashlen allows 2^16 different objects)
+    # chr should be around 10%
+    cache = MyCache(totalsize=int(2 ** 16 * 0.1))
+
+    req, sta = zip(*list(cache.map(reader)))
 
     hit = sta.count(Status.HIT)
     print(f"Requests: {len(sta)}")

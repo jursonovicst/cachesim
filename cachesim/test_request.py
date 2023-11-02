@@ -47,7 +47,7 @@ class TestRequest(TestCase):
             else:
                 self.assertTrue(request.cacheable)
 
-            # after caches enter
+            # after examples2 enter
             request.enter = ts
             self.assertEqual(ts, request.time)
             self.assertEqual(hash, request.hash)

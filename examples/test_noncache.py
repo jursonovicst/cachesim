@@ -4,8 +4,8 @@ from unittest import TestCase
 from matplotlib import pyplot as plt
 
 from cachesim import Request, Status
-from cachesim.caches import NonCache
 from cachesim.readers import PopulationReader
+from noncache import NonCache
 
 
 class TestNonCache(TestCase):
@@ -47,7 +47,7 @@ class TestNonCache(TestCase):
                                   weights=[1] * count)
         #        plt.plot([r.time for r in readers], 'x')
         #        plt.show()
-        # create a caches, size limited to 10% of content base
+        # create a examples2, size limited to 10% of content base
         totalsize = int(totalcount * mean / 10)
         cache = NonCache()
 

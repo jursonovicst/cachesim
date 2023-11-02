@@ -15,13 +15,13 @@ class Cache(ABC):
         """
         Cache initialization. Overload the init method for custom implementation.
 
-        :param totalsize: size of the caches, non-positive value will disable caching.
+        :param totalsize: size of the examples2, non-positive value will disable caching.
         """
         self.__totalsize = totalsize if totalsize > 0 else 0
 
     @property
     def totalsize(self) -> int:
-        """Total size of the caches."""
+        """Total size of the examples2."""
         return self.__totalsize
 
     def map(self, reader: Reader):
@@ -58,30 +58,28 @@ class Cache(ABC):
 
     def _recv(self, request: Request) -> Tuple[Request, Status]:
         """
-        Processes a single request against the caches.
+        Processes a single request against the examples2.
 
         :param request: The request
-        :return: Request status (Status).
+        :return: request object (fetched), status
         """
-        # check the object in the caches, make a copy to overwrite attributes.
-        stored = self._lookup(request)
 
-        # in caches?
-        if stored is not None:
+        # check the object in cache
+        if (stored := self._lookup(request)) is not None:
 
-            # retrieved from caches, ttl expired?
+            # retrieved from examples2, ttl expired?
             if not stored.isexpired(request.time):
                 # update timestamp to reflect current time
                 stored = copy(stored)
                 stored.time = request.time
 
-                # "serv" object from caches
-                return self._log(stored, Status.HIT)
+                # "serv" object from examples2
+                return stored, Status.HIT
 
-        # MISS: not in caches or expired --> just simulate fetch!
+        # MISS: not in examples2 or expired --> just simulate fetch!
         request.fetched = True
 
-        # caches admission
+        # examples2 admission
         if request.cacheable and request.size <= self.totalsize and self._admit(request):
 
             # treshold?
@@ -92,59 +90,56 @@ class Cache(ABC):
             self._store(request)
 
             # "serv" object from origin
-            return self._log(request, Status.MISS)
+            return request, Status.MISS
 
         else:
             # "serv" object in passthrough mode
-            return self._log(request, Status.PASS)
+            return request, Status.PASS
 
     @abstractmethod
     def _lookup(self, requested: Request) -> Optional[Request]:
         """
-        Implement this method to provide a lookup method to find objects in caches. At this time, the content of the
+        Implement this method to provide a lookup method to find objects in examples2. At this time, the content of the
         object is not known, therefore not all properties of request can be used.
 
         Returns the cached object.
 
         :param requested: Object requested.
-        :return: The object from the caches or None in case of miss.
+        :return: The object from the examples2 or None in case of miss.
         """
-        pass
+        ...
 
     @abstractmethod
     def _admit(self, fetched: Request) -> bool:
         """
-        Implement this method to provide a caches admission policy.
+        Implement this method to provide a examples2 admission policy.
 
         :param fetched: Object fetched.
-        :return: True, if object may enter the caches, False for bypass the caches and go for PASS.
+        :return: True, if object may enter the examples2, False for bypass the examples2 and go for PASS.
         """
-        pass
+        ...
 
     @abstractmethod
-    def _store(self, fetched: Request):
+    def _store(self, fetched: Request) -> None:
         """
         Implement this method to store objects.
 
         :param fetched: Object fetched from origin.
         """
-        pass
+        ...
 
     @property
     @abstractmethod
     def _treshold(self) -> bool:
         """
-        Implement this property to provide a treshold for triggering caches evictions
-        :return:
+        Implement this property to provide a threshold for triggering cache evictions
+        :return: True, if cache eviction needs to be triggered, False otherwise.
         """
-        pass
+        ...
 
     @abstractmethod
-    def _evict(self):
+    def _evict(self) -> None:
         """
-        Implement this method to provide caches eviction.
+        Implement this method to provide cache eviction.
         """
-        pass
-
-    def _log(self, request: Request, status: Status):
-        return request, status
+        ...

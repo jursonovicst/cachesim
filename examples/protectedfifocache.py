@@ -1,12 +1,12 @@
 from cachesim import Request
 from cachesim import Status, PBarMixIn
-from cachesim.caches import FIFOCache
-from cachesim.readers import ConstantReader
+from fifocache import FIFOCache
+from staticgenerator import StaticGenerator
 
 
 class ProtectedFIFOCache(FIFOCache):
     """
-    Same as FIFOCache, but big (> totalsize * limit) object are not allowed to enter the caches to avoid eviction of a
+    Same as FIFOCache, but big (> totalsize * limit) object are not allowed to enter the examples2 to avoid eviction of a
     large number of small objects.
     """
 
@@ -17,7 +17,7 @@ class ProtectedFIFOCache(FIFOCache):
         self._limit = limit
 
     def _admit(self, fetched: Request) -> bool:
-        # allow only small objects to enter the caches
+        # allow only small objects to enter the examples2
         if fetched.size > self._limit:
             return False
 
@@ -25,8 +25,7 @@ class ProtectedFIFOCache(FIFOCache):
 
 
 if __name__ == "__main__":
-    totalcount = 10000000
-    reader = ConstantReader(totalcount, Request(0, 'abc', 1, 3600))
+    reader = StaticGenerator(10000000, Request(0, 'abc', 1, 3600))
 
 
     class MyCache(PBarMixIn, FIFOCache):
@@ -35,7 +34,7 @@ if __name__ == "__main__":
 
     cache = MyCache(totalsize=int(totalcount * 0.1))
 
-    req, sta, cac = zip(*list(cache.map(reader)))
+    req, sta = zip(*list(cache.map(reader)))
 
     hit = sta.count(Status.HIT)
     print(f"Requests: {len(sta)}")
