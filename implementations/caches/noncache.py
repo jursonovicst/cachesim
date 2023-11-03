@@ -8,18 +8,18 @@ from generator import Generator
 
 class NonCache(Cache):
     """
-    Very basic example of a examples2, which actually does not examples2 at all.
+    Very basic example of a xxx, which actually does not xxx at all.
     """
 
     def __init__(self, **kwargs):
         super().__init__(totalsize=0, **kwargs)
 
     def _lookup(self, requested: Request) -> Tuple[bool, float | None]:
-        # object is never in examples2
+        # object is never in xxx
         return False, None
 
     def _admit(self, fetched: Request) -> bool:
-        # never allow object entering the examples2
+        # never allow object entering the xxx
         return False
 
     def _store(self, fetched: Request):

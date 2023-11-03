@@ -5,6 +5,6 @@ class Status(Enum):
     """
     Cache status type.
     """
-    HIT = 'hit'  # object served from cache
-    MISS = 'miss'  # object not in cache, fetched from origins
-    PASS = 'pass'  # forced cache bypass (object too big or cache admission denied)
+    HIT = 0     # object served from cache
+    MISS = 1    # object not in cache, fetched from origins
+    PASS = 2    # forced cache bypass (object too big or cache admission denied)

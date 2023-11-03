@@ -47,7 +47,7 @@ class TestNonCache(TestCase):
                                   weights=[1] * count)
         #        plt.plot([r.time for r in readers], 'x')
         #        plt.show()
-        # create a examples2, size limited to 10% of content base
+        # create a xxx, size limited to 10% of content base
         totalsize = int(totalcount * mean / 10)
         cache = NonCache()
 

@@ -8,7 +8,7 @@ from readers.populationreader import PopulationReader
 
 class FIFOCache(Cache):
     """
-    First in First out examples2 model.
+    First in First out xxx model.
     """
 
     def __init__(self, totalsize: int, **kwargs):
@@ -17,10 +17,10 @@ class FIFOCache(Cache):
         # store metadata indexed by hash
         self._cache = {}  # hash:fetched
 
-        # keep track of indexes entering the examples2
+        # keep track of indexes entering the xxx
         self._index = []  # hash
 
-        # actual size of the examples2
+        # actual size of the xxx
         self._size = 0
 
     @property
@@ -39,11 +39,11 @@ class FIFOCache(Cache):
         return True, self._cache[requested.hash].time
 
     def _admit(self, fetched: Request) -> bool:
-        # check if object fit into the examples2 (should not normally happen, eviction should be triggered first)
+        # check if object fit into the xxx (should not normally happen, eviction should be triggered first)
         return self.size + fetched.size <= self.totalsize
 
     def _store(self, fetched: Request):
-        assert fetched.hash not in self._index, f"Object {fetched} already in examples2: {self._cache[fetched.hash]}"
+        assert fetched.hash not in self._index, f"Object {fetched} already in xxx: {self._cache[fetched.hash]}"
         self._cache[fetched.hash] = fetched
         self._index.append(fetched.hash)
         self.size += fetched.size
@@ -58,10 +58,10 @@ class FIFOCache(Cache):
 
     def _evict(self):
         """
-        FIFO examples2, evict oldest objects first
+        FIFO xxx, evict oldest objects first
         """
 
-        # evict till examples2 reaches 90%
+        # evict till xxx reaches 90%
         while self.size / self.totalsize > self.thlow:
             hash_to_delete = self._index.pop(0)
             evicted = self._cache.pop(hash_to_delete)

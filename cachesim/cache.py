@@ -29,7 +29,7 @@ class Cache(ABC):
         """
         return map(self._recv, requests)
 
-    def _recv(self, request: Request) -> Tuple[Request, Status, float]:
+    def _recv(self, request: Request) -> Tuple[Request, float]:
         """
         Processes a single request against the cache.
 
@@ -41,32 +41,33 @@ class Cache(ABC):
         found, time_stored = self._lookup(request)
         if found:
             # retrieved from cache, update status
-            request.retrieve()
+            request.retrieve(Status.HIT)
 
             # expired?
             if (age := request.time - time_stored) <= request.maxage:
                 # "serv" object from cache
-                return request, Status.HIT, age
+                return request, age
 
         # not in cache or expired --> simulate fetch!
-        request.retrieve()
+        request.retrieve(Status.MISS)
 
         # cache admission
         if request.cacheable and request.size <= self.totalsize and self._admit(request):
 
-            # treshold?
-            if self._treshold:
-                self._evict()
+            # # treshold?
+            # if self._treshold:
+            #     self._evict()
 
             # store object
             self._store(request)
 
             # "serv" object from origin
-            return request, Status.MISS, 0
+            return request, 0
 
         else:
             # "serv" object in passthrough mode
-            return request, Status.PASS, 0
+            request.retrieve(Status.PASS)
+            return request, 0
 
     @abstractmethod
     def _lookup(self, requested: Request) -> Tuple[bool, float | None]:
@@ -100,18 +101,18 @@ class Cache(ABC):
         """
         ...
 
-    @property
-    @abstractmethod
-    def _treshold(self) -> bool:
-        """
-        Implement this property to provide a threshold for triggering cache eviction.
-        :return: True, if cache eviction needs to be triggered, False otherwise.
-        """
-        ...
-
-    @abstractmethod
-    def _evict(self) -> None:
-        """
-        Implement this method to provide cache eviction.
-        """
-        ...
+    # @property
+    # @abstractmethod
+    # def _treshold(self) -> bool:
+    #     """
+    #     Implement this property to provide a threshold for triggering cache eviction.
+    #     :return: True, if cache eviction needs to be triggered, False otherwise.
+    #     """
+    #     ...
+    #
+    # @abstractmethod
+    # def _evict(self) -> None:
+    #     """
+    #     Implement this method to provide cache eviction.
+    #     """
+    #     ...

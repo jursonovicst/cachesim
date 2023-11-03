@@ -1,5 +1,7 @@
 from typing import Hashable
 
+from cachesim import Status
+
 
 class Request:
     """
@@ -28,7 +30,9 @@ class Request:
         # metadata only known after fetch
         self._size = size
         self._maxage = maxage
+        self._status = None
 
+    ######################
     # properties available
 
     @property
@@ -43,11 +47,20 @@ class Request:
     def retrieved(self) -> bool:
         return self._retrieved
 
-    def retrieve(self):
+    def retrieve(self, status: Status):
         """
         Simulates object fetch
         """
         self._retrieved = True
+        self._status = status
+
+    ######################
+    # properties after retrieve
+
+    @property
+    def status(self) -> Status:
+        assert self.retrieved, f"size property can be accessed after object fetch!"
+        return self._status
 
     @property
     def size(self) -> int:

@@ -8,7 +8,7 @@ from cachesim.tools import PBarMixIn
 from readers.populationreader import PopulationReader
 
 
-class LFUCache(Cache):
+class SlowLFUCache(Cache):
     """
     LFU (least frequently used) model. Inefficient implementation.
     """
@@ -19,10 +19,10 @@ class LFUCache(Cache):
         # store metadata indexed by hash
         self._cache = {}  # hash: fetched
 
-        # keep track of indexes entering the examples2 and usage count
+        # keep track of indexes entering the xxx and usage count
         self._index = {}  # hash: count
 
-        # actual size of the examples2
+        # actual size of the xxx
         self._size = 0
 
     @property
@@ -43,11 +43,11 @@ class LFUCache(Cache):
         return True, self._cache[requested.hash].time
 
     def _admit(self, fetched: Request) -> bool:
-        # check if object fit into the examples2 (should not normally happen, eviction should be triggered first)
+        # check if object fit into the xxx (should not normally happen, eviction should be triggered first)
         return self.size + fetched.size <= self.totalsize
 
     def _store(self, fetched: Request) -> None:
-        assert fetched.hash not in self._index, f"Object {fetched} already in examples2: {self._cache[fetched.hash]}"
+        assert fetched.hash not in self._index, f"Object {fetched} already in xxx: {self._cache[fetched.hash]}"
         self._index[fetched.hash] = 0
         self._cache[fetched.hash] = fetched
         self.size += fetched.size
@@ -62,10 +62,10 @@ class LFUCache(Cache):
 
     def _evict(self):
         """
-        LFU examples2, evict least frequently used objects first
+        LFU xxx, evict least frequently used objects first
         """
 
-        # evict till examples2 reaches 90%
+        # evict till xxx reaches 90%
         while self.size / self.totalsize > self.thlow:
             hash_to_delete = min(self._index, key=self._index.get)
             self._index.pop(hash_to_delete)
@@ -77,7 +77,7 @@ class LFUCache(Cache):
         return self.size / self.totalsize > self.thhigh
 
 
-class CachetoolsLFUCache(Cache):
+class LFUCache(Cache):
     """
     LFU (least frequently used) model by cachetools.
     """
@@ -101,27 +101,24 @@ class CachetoolsLFUCache(Cache):
         return True, self._cache[requested.hash].time
 
     def _admit(self, fetched: Request) -> bool:
-        # check if object fit into the examples2 (should not normally happen, eviction should be triggered first)
+        # check if object fit into the xxx (should not normally happen, eviction should be triggered first)
         return self.size + fetched.size <= self.totalsize
 
     def _store(self, fetched: Request) -> None:
         self._cache[fetched.hash] = fetched
 
-    def _evict(self):
-        # cachetools.LFUCache handles eviction.
-        pass
-
-    def _treshold(self) -> bool:
-        # cachetools.LFUCache handles eviction.
-        pass
 
 if __name__ == "__main__":
-    count = 10000000
+    count = 1000000
     cbase = count // 10
-    reader = PopulationReader(count, [Request(0, chash, 1, 3600) for chash in range(count // 10)], [1] * cbase)
+
+    print("Create population...")
+    s = 1.3
+    HNs = sum([k ** -s for k in range(1, cbase + 1)])
+    reader = PopulationReader(count, cbase, weights=[k ** -s / HNs for k in range(1, cbase + 1)])
 
 
-    class MyCache(PBarMixIn, CachetoolsLFUCache):
+    class MyCache(PBarMixIn, LFUCache):
         pass
 
 
@@ -129,9 +126,11 @@ if __name__ == "__main__":
     # chr should be around 10%
     cache = MyCache(totalsize=cbase // 10)
 
-    req, sta, age = zip(*list(cache.map(reader)))
+    req, age = zip(*list(cache.map(reader)))
 
-    hit = sta.count(Status.HIT)
-    print(f"Requests: {len(sta)}")
-    print(f"CHR: {hit / len(sta) * 100:.2f}%")
+    hit = sum(map(lambda r: r.status == Status.HIT, req))
+    print(f"Requests: {len(req)}")
+    print(f"CHR: {hit / len(req) * 100:.2f}%")
     print(f"Bytes sent: {sum(r.size for r in req)} B")
+
+    x = [r.time for r in req]

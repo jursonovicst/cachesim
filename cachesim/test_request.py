@@ -52,7 +52,7 @@ class TestRequest(TestCase):
             request.store()
             self.assertEqual(ts, request.ts_store)
 
-            # after examples2 enter
+            # after xxx enter
             self.assertEqual(ts, request.time)
             self.assertEqual(ts, request.ts_store)
             self.assertEqual(chash, request.hash)
