@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from copy import copy
 from typing import Optional, Tuple
 
 from cachesim import Reader, Request
@@ -15,71 +14,38 @@ class Cache(ABC):
         """
         Cache initialization. Overload the init method for custom implementation.
 
-        :param totalsize: size of the examples2, non-positive value will disable caching.
+        :param totalsize: size of the cache, non-positive value will disable caching.
         """
         self.__totalsize = totalsize if totalsize > 0 else 0
 
     @property
     def totalsize(self) -> int:
-        """Total size of the examples2."""
+        """Total size of the cache."""
         return self.__totalsize
 
     def map(self, reader: Reader):
         return map(self._recv, reader)
 
-    # def imap(self, requests: Iterable[Request], chunksize: int = 1):
-    #     self.map(requests)
-    #
-    #         # return iterator for slices
-    #         for chunk in islice(result_i, chunksize):
-    #             print(chunk)
-    #
-    #     except KeyboardInterrupt:
-    #         pass
-    #     except Exception as e:
-    #         self.__logger.exception(f"{e.__class__.__name__} occurred: {e}")
-
-    # def run(self):
-    #     try:
-    #         # map the __recv function (in tqdm for progress bar) to create an iterator object
-    #         result_i = map(self.__recv, tqdm(self.__requests, desc=self.__class__.__name__, position=2))
-    #
-    #         # start processing in chunks
-    #         for chunk in islice(result_i, 10):
-    #             print(chunk)
-    #
-    #     except KeyboardInterrupt:
-    #         pass
-    #     except Exception as e:
-    #         self.__logger.exception(f"{e.__class__.__name__} occurred: {e}")
-    #     finally:
-    #         # close process
-    #         self.close()
-
-    def _recv(self, request: Request) -> Tuple[Request, Status]:
+    def _recv(self, request: Request) -> Tuple[Request, Status, float]:
         """
-        Processes a single request against the examples2.
+        Processes a single request against the cache.
 
         :param request: The request
-        :return: request object (fetched), status
+        :return: requested object (fetched), status, age
         """
 
         # check the object in cache
         if (stored := self._lookup(request)) is not None:
 
-            # retrieved from examples2, ttl expired?
-            if not stored.isexpired(request.time):
-                # update timestamp to reflect current time
-                stored = copy(stored)
-                stored.time = request.time
+            # retrieved from cache, ttl expired?
+            if not stored.isexpired(request.requestedat):
+                # "serv" object from cache
+                return stored, Status.HIT, request.requestedat - stored.storedat
 
-                # "serv" object from examples2
-                return stored, Status.HIT
-
-        # MISS: not in examples2 or expired --> just simulate fetch!
+        # MISS: not in cache or expired --> just simulate fetch!
         request.fetched = True
 
-        # examples2 admission
+        # cache admission
         if request.cacheable and request.size <= self.totalsize and self._admit(request):
 
             # treshold?
@@ -90,32 +56,32 @@ class Cache(ABC):
             self._store(request)
 
             # "serv" object from origin
-            return request, Status.MISS
+            return request, Status.MISS, 0
 
         else:
             # "serv" object in passthrough mode
-            return request, Status.PASS
+            return request, Status.PASS, 0
 
     @abstractmethod
     def _lookup(self, requested: Request) -> Optional[Request]:
         """
-        Implement this method to provide a lookup method to find objects in examples2. At this time, the content of the
+        Implement this method to provide a lookup method to find objects in the cache. At this time, the content of the
         object is not known, therefore not all properties of request can be used.
 
         Returns the cached object.
 
         :param requested: Object requested.
-        :return: The object from the examples2 or None in case of miss.
+        :return: The object from the cache or None in case of miss.
         """
         ...
 
     @abstractmethod
     def _admit(self, fetched: Request) -> bool:
         """
-        Implement this method to provide a examples2 admission policy.
+        Implement this method to provide a cache admission policy.
 
         :param fetched: Object fetched.
-        :return: True, if object may enter the examples2, False for bypass the examples2 and go for PASS.
+        :return: True, if object may enter the cache, False for bypass and go for PASS.
         """
         ...
 
@@ -132,7 +98,7 @@ class Cache(ABC):
     @abstractmethod
     def _treshold(self) -> bool:
         """
-        Implement this property to provide a threshold for triggering cache evictions
+        Implement this property to provide a threshold for triggering cache eviction.
         :return: True, if cache eviction needs to be triggered, False otherwise.
         """
         ...

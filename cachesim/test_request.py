@@ -16,14 +16,16 @@ class TestRequest(TestCase):
             hash = ''.join(random.choice(letters) for i in range(random.randint(5, 20)))
             size = random.randint(1024, 1024 * 1024 * 100)
             maxage = random.randint(0, 30)
-            request = Request(time=ts, hash=hash, size=size, maxage=maxage)
+            request = Request(time=ts, chash=hash, size=size, maxage=maxage)
 
             # before fetch
-            self.assertEqual(ts, request.time)
+            self.assertEqual(ts, request.requestedat)
             self.assertEqual(hash, request.hash)
             self.assertFalse(request.fetched)
             self.assertEqual(f"{ts} {hash} - -", str(request))
 
+            with self.assertRaises(AssertionError):
+                a = request.storedat
             with self.assertRaises(AssertionError):
                 a = request.size
             with self.assertRaises(AssertionError):
@@ -35,7 +37,9 @@ class TestRequest(TestCase):
 
             # after fetch
             request.fetched = True
-            self.assertEqual(ts, request.time)
+            with self.assertRaises(AssertionError):
+                a = request.requestedat
+            self.assertEqual(ts, request.storedat)
             self.assertEqual(hash, request.hash)
             self.assertTrue(request.fetched)
             self.assertEqual(f"{ts} {hash} {size} {maxage}", str(request))
@@ -48,8 +52,7 @@ class TestRequest(TestCase):
                 self.assertTrue(request.cacheable)
 
             # after examples2 enter
-            request.enter = ts
-            self.assertEqual(ts, request.time)
+            self.assertEqual(ts, request.storedat)
             self.assertEqual(hash, request.hash)
             self.assertTrue(request.fetched)
 
@@ -59,7 +62,6 @@ class TestRequest(TestCase):
                 self.assertFalse(request.cacheable)
             else:
                 self.assertTrue(request.cacheable)
-            self.assertEqual(ts, request.enter)
             delta = random.randint(0, 35)
             if delta > maxage:
                 self.assertTrue(request.isexpired(ts + delta))
@@ -74,13 +76,13 @@ class TestRequest(TestCase):
             index = ''.join(random.choice(letters) for i in range(random.randint(5, 20)))
             size_a = random.randint(1024, 1024 * 1024 * 100)
             maxage = random.randint(0, 30)
-            request_a = Request(time=ts, hash=index, size=size_a, maxage=maxage)
+            request_a = Request(time=ts, chash=index, size=size_a, maxage=maxage)
 
             ts = time.time() + random.random() * 2 * 60 * 60 * 24 * 365 + 60 * 60 * 24 * 365
             index = ''.join(random.choice(letters) for i in range(random.randint(5, 20)))
             size_b = random.randint(1024, 1024 * 1024 * 100)
             maxage = random.randint(0, 30)
-            request_b = Request(time=ts, hash=index, size=size_b, maxage=maxage)
+            request_b = Request(time=ts, chash=index, size=size_b, maxage=maxage)
 
             request_a.fetched = True
             request_b.fetched = True
@@ -94,18 +96,18 @@ class TestRequest(TestCase):
             ts = time.time() + random.random() * 2 * 60 * 60 * 24 * 365 + 60 * 60 * 24 * 365
             size = random.randint(1024, 1024 * 1024 * 100)
             maxage = random.randint(0, 30)
-            request_a1 = Request(time=ts, hash=index_a, size=size, maxage=maxage)
+            request_a1 = Request(time=ts, chash=index_a, size=size, maxage=maxage)
 
             ts = time.time() + random.random() * 2 * 60 * 60 * 24 * 365 + 60 * 60 * 24 * 365
             size = random.randint(1024, 1024 * 1024 * 100)
             maxage = random.randint(0, 30)
-            request_a2 = Request(time=ts, hash=index_a, size=size, maxage=maxage)
+            request_a2 = Request(time=ts, chash=index_a, size=size, maxage=maxage)
 
             ts = time.time() + random.random() * 2 * 60 * 60 * 24 * 365 + 60 * 60 * 24 * 365
             index_b = ''.join(random.choice(letters) for i in range(random.randint(5, 20)))
             size = random.randint(1024, 1024 * 1024 * 100)
             maxage = random.randint(0, 30)
-            request_b = Request(time=ts, hash=index_b, size=size, maxage=maxage)
+            request_b = Request(time=ts, chash=index_b, size=size, maxage=maxage)
 
             # self.assertEqual(request_a1, request_a2)
             # self.assertNotEqual(request_a1, request_b)
@@ -116,7 +118,7 @@ class TestRequest(TestCase):
         request = Request.fromlist(a4)
 
         self.assertIsInstance(request, Request)
-        self.assertEqual(request.time, 0)
+        self.assertEqual(request._time, 0)
         self.assertEqual(request.hash, 'abc')
         self.assertEqual(request._size, 1)
         self.assertEqual(request._maxage, 60)
@@ -125,7 +127,7 @@ class TestRequest(TestCase):
         request = Request.fromlist(a5)
 
         self.assertIsInstance(request, Request)
-        self.assertEqual(request.time, 0)
+        self.assertEqual(request._time, 0)
         self.assertEqual(request.hash, 'abc')
         self.assertEqual(request.size, 1)
         self.assertEqual(request.maxage, 60)

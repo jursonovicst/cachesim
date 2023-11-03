@@ -3,25 +3,25 @@ from typing import Hashable
 
 class Request:
     """
-    Represents the metadata of the examples2 request
+    Represents the metadata of the cache request
     """
 
     @classmethod
     def fromlist(cls, l: list):
-        assert len(l) >= 4, f"I need at least 4 elements, got '{l}'"
+        assert len(l) >= 4, f"I need 'time, hash, size, maxage, [fetched]' elements, but got '{l}'"
         return cls(l[0], l[1], l[2], l[3], l[4] if len(l) > 4 else False)
 
-    def __init__(self, time: float, hash: Hashable, size: int, maxage: int, fetched: bool = False):
+    def __init__(self, time: float, chash: Hashable, size: int, maxage: int, fetched: bool = False):
         """
 
-        :param time: Timestamp (unix time) at the request was placed.
-        :param hash: Uniq identifier of the requested object (hash).
+        :param time: Timestamp (unix time) at the request was placed (and stored in case of a cache hit)
+        :param chash: Uniq identifier of the requested object (hash).
         :param size: Size of the requested object.
         :param maxage: Maximum caching time. For non cacheable objects, use a non-positive value.
         """
         # metadata to be known before fetch
         self._time = time
-        self._hash = hash
+        self._hash = chash
 
         # metadata only known after fetch
         self._size = size
@@ -31,12 +31,14 @@ class Request:
         self._fetched = fetched  # object fetched (retrieved from origin)
 
     @property
-    def time(self) -> float:
+    def requestedat(self) -> float:
+        assert not self.fetched, f"fetched object has no request time, use the {self.storedat.__class__.__name__} property instead!"
         return self._time
 
-    @time.setter
-    def time(self, v: float):
-        self._time = v
+    @property
+    def storedat(self) -> float:
+        assert self.fetched, f"requested object has no stored time, use the {self.requestedat.__class__.__name__} property instead!"
+        return self._time
 
     @property
     def hash(self) -> Hashable:
@@ -58,8 +60,8 @@ class Request:
         return self.maxage > 0
 
     def isexpired(self, now: float) -> bool:
-        assert self.fetched, f"Object must first enter the examples2 to determine if it is expired."
-        return self.time + self.maxage < now
+        assert self.fetched, f"Object must first enter the cache to determine if it is expired."
+        return self._time + self.maxage < now
 
     @property
     def fetched(self) -> bool:
