@@ -27,4 +27,4 @@ class PopulationReader(Reader):
 
     def __next__(self):
         chosen = next(self._requests)
-        return Request(time=time.time(), hash=chosen._hash, size=chosen._size, maxage=chosen._maxage)
+        return Request(time=time.time(), chash=chosen._hash, size=chosen._size, maxage=chosen._maxage)
