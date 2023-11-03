@@ -1,20 +1,23 @@
-from typing import Optional
+from typing import Tuple
 
-from cachesim import Cache, Status, PBarMixIn
+import cachetools
+
+from cachesim import Cache, Status
 from cachesim import Request
-from generator import Generator
+from cachesim.tools import PBarMixIn
+from readers.populationreader import PopulationReader
 
 
 class LFUCache(Cache):
     """
-    LFU (least frequently used) model. inefficient implementation.
+    LFU (least frequently used) model. Inefficient implementation.
     """
 
     def __init__(self, totalsize: int, **kwargs):
         super().__init__(totalsize=totalsize, **kwargs)
 
         # store metadata indexed by hash
-        self._cache = {}  # hash: request
+        self._cache = {}  # hash: fetched
 
         # keep track of indexes entering the examples2 and usage count
         self._index = {}  # hash: count
@@ -31,19 +34,19 @@ class LFUCache(Cache):
         assert v >= 0, f"Size must be non negative, received '{v}'"
         self._size = v
 
-    def _lookup(self, requested: Request) -> Optional[Request]:
-        if requested.hash not in self._index:
-            return None
+    def _lookup(self, requested: Request) -> Tuple[bool, float | None]:
+        if requested.hash not in self._cache:
+            return False, None
 
-        # match, update count and return object
+        # match, update count and return
         self._index[requested.hash] += 1
-        return self._cache[requested.hash]
+        return True, self._cache[requested.hash].time
 
     def _admit(self, fetched: Request) -> bool:
         # check if object fit into the examples2 (should not normally happen, eviction should be triggered first)
         return self.size + fetched.size <= self.totalsize
 
-    def _store(self, fetched: Request):
+    def _store(self, fetched: Request) -> None:
         assert fetched.hash not in self._index, f"Object {fetched} already in examples2: {self._cache[fetched.hash]}"
         self._index[fetched.hash] = 0
         self._cache[fetched.hash] = fetched
@@ -74,21 +77,61 @@ class LFUCache(Cache):
         return self.size / self.totalsize > self.thhigh
 
 
-if __name__ == "__main__":
-    reader = Generator(10000000, hashgen=lambda: "tom", sizegen=lambda: 1, maxagegen=lambda: 1)
-    #reader = StaticGenerator(10000000, Request(0, 'abc', 1, 3600))
+class CachetoolsLFUCache(Cache):
+    """
+    LFU (least frequently used) model by cachetools.
+    """
 
-    class MyCache(PBarMixIn, LFUCache):
+    def __init__(self, totalsize: int, **kwargs):
+        super().__init__(totalsize=totalsize, **kwargs)
+
+        # store metadata indexed by hash
+        self._cache = cachetools.LFUCache(totalsize, lambda x: x.size)
+
+    @property
+    def size(self) -> int:
+        return int(self._cache.currsize)
+
+    def _lookup(self, requested: Request) -> Tuple[bool, float | None]:
+        if requested.hash not in self._cache:
+            return False, None
+
+        # match, update count and return
+
+        return True, self._cache[requested.hash].time
+
+    def _admit(self, fetched: Request) -> bool:
+        # check if object fit into the examples2 (should not normally happen, eviction should be triggered first)
+        return self.size + fetched.size <= self.totalsize
+
+    def _store(self, fetched: Request) -> None:
+        self._cache[fetched.hash] = fetched
+
+    def _evict(self):
+        # cachetools.LFUCache handles eviction.
+        pass
+
+    def _treshold(self) -> bool:
+        # cachetools.LFUCache handles eviction.
+        pass
+
+if __name__ == "__main__":
+    count = 10000000
+    cbase = count // 10
+    reader = PopulationReader(count, [Request(0, chash, 1, 3600) for chash in range(count // 10)], [1] * cbase)
+
+
+    class MyCache(PBarMixIn, CachetoolsLFUCache):
         pass
 
 
-    # examples2 size is 10% of content base (2 byte hashlen allows 2^16 different objects)
+    # cache size is 10% of content base
     # chr should be around 10%
-    cache = MyCache(totalsize=int(2 ** 16 * 0.1))
+    cache = MyCache(totalsize=cbase // 10)
 
-    req, sta = zip(*list(cache.map(reader)))
+    req, sta, age = zip(*list(cache.map(reader)))
 
     hit = sta.count(Status.HIT)
     print(f"Requests: {len(sta)}")
     print(f"CHR: {hit / len(sta) * 100:.2f}%")
-    print(f"Bytes sent: {sum(r.size for r in req)} Byte")
+    print(f"Bytes sent: {sum(r.size for r in req)} B")

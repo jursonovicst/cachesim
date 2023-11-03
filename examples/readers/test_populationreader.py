@@ -2,7 +2,7 @@ import random
 from unittest import TestCase
 
 from cachesim import Request
-from cachesim.readers import PopulationReader
+from populationreader import PopulationReader
 
 
 class TestPopulationReader(TestCase):
@@ -38,7 +38,7 @@ class TestPopulationReader(TestCase):
             # test uniq
             uniq[r.hash] = r
 
-            self.assertFalse(r.fetched)
+            self.assertFalse(r.retrieved)
             r.fetched = True
 
             self.assertGreaterEqual(r.size, smin)

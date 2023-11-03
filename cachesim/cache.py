@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple
+from typing import Tuple, Iterable
 
-from cachesim import Reader, Request
+from cachesim import Request
 from cachesim import Status
 
 
@@ -10,7 +10,7 @@ class Cache(ABC):
     Abstract class to provide framework and basic functions. Inherit your model from this class.
     """
 
-    def __init__(self, totalsize: int):
+    def __init__(self, totalsize: int, **kwargs):
         """
         Cache initialization. Overload the init method for custom implementation.
 
@@ -23,8 +23,11 @@ class Cache(ABC):
         """Total size of the cache."""
         return self.__totalsize
 
-    def map(self, reader: Reader):
-        return map(self._recv, reader)
+    def map(self, requests: Iterable[Request]):
+        """
+        Use this method to process requests.
+        """
+        return map(self._recv, requests)
 
     def _recv(self, request: Request) -> Tuple[Request, Status, float]:
         """
@@ -35,15 +38,18 @@ class Cache(ABC):
         """
 
         # check the object in cache
-        if (stored := self._lookup(request)) is not None:
+        found, time_stored = self._lookup(request)
+        if found:
+            # retrieved from cache, update status
+            request.retrieve()
 
-            # retrieved from cache, ttl expired?
-            if not stored.isexpired(request.requestedat):
+            # expired?
+            if (age := request.time - time_stored) <= request.maxage:
                 # "serv" object from cache
-                return stored, Status.HIT, request.requestedat - stored.storedat
+                return request, Status.HIT, age
 
-        # MISS: not in cache or expired --> just simulate fetch!
-        request.fetched = True
+        # not in cache or expired --> simulate fetch!
+        request.retrieve()
 
         # cache admission
         if request.cacheable and request.size <= self.totalsize and self._admit(request):
@@ -63,15 +69,15 @@ class Cache(ABC):
             return request, Status.PASS, 0
 
     @abstractmethod
-    def _lookup(self, requested: Request) -> Optional[Request]:
+    def _lookup(self, requested: Request) -> Tuple[bool, float | None]:
         """
         Implement this method to provide a lookup method to find objects in the cache. At this time, the content of the
         object is not known, therefore not all properties of request can be used.
 
-        Returns the cached object.
+        Returns a cache lookup result.
 
         :param requested: Object requested.
-        :return: The object from the cache or None in case of miss.
+        :return: tuple of True if found in cache else False and the timestamp of storage time, None if not found.
         """
         ...
 

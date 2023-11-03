@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Tuple
 
-from cachesim import Cache, Status, PBarMixIn
+from cachesim import Cache, Status
 from cachesim import Request
+from cachesim.tools import PBarMixIn
 from generator import Generator
 
 
@@ -13,9 +14,9 @@ class NonCache(Cache):
     def __init__(self, **kwargs):
         super().__init__(totalsize=0, **kwargs)
 
-    def _lookup(self, requested: Request) -> Optional[Request]:
+    def _lookup(self, requested: Request) -> Tuple[bool, float | None]:
         # object is never in examples2
-        return None
+        return False, None
 
     def _admit(self, fetched: Request) -> bool:
         # never allow object entering the examples2
@@ -36,14 +37,13 @@ class NonCache(Cache):
 if __name__ == "__main__":
     reader = Generator(10000000, hashgen=str("hash"), sizegen=int(1), maxagegen=int(10))
 
-    print(next(reader))
 
     class MyCache(PBarMixIn, NonCache):
         pass
 
 
     cache = MyCache()
-    req, sta = zip(*list(cache.map(reader)))
+    req, sta, age = zip(*list(cache.map(reader)))
 
     hit = sta.count(Status.HIT)
     print(f"Requests: {len(sta)}")

@@ -2,7 +2,8 @@ import random
 import time
 from typing import List
 
-from cachesim import Reader, Request
+from cachesim import Request
+from cachesim.tools import Reader
 
 
 class PopulationReader(Reader):
@@ -12,19 +13,19 @@ class PopulationReader(Reader):
 
         assert len(population) == len(
             weights), f"population size must match with weights len, got: '{len(population)}', '{len(weights)}'"
-        assert all(isinstance(e, Request) for e in population), f"Population should have Request element"
-        self._population = population
+        assert all(isinstance(e, Request) for e in population), f"Population should have only Request elements"
 
         assert all(w >= 0 for w in weights), f"Weights should be non negative integers"
-        self._weights = weights
 
-        self._requests = None
+        self._population = population
+        self._choices = iter(random.choices(range(len(population)), weights=weights, k=count))
 
     def __iter__(self):
-        self._requests = iter(random.choices(self._population, self._weights, k=self.totalcount))
-
-        return super().__iter__()
+        return self
 
     def __next__(self):
-        chosen = next(self._requests)
-        return Request(time=time.time(), chash=chosen._hash, size=chosen._size, maxage=chosen._maxage)
+        choice = next(self._choices)
+        return Request(time=time.time(),
+                       chash=self._population[choice]._hash,
+                       size=self._population[choice]._size,
+                       maxage=self._population[choice]._maxage)

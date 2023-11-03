@@ -4,7 +4,7 @@ from unittest import TestCase
 from matplotlib import pyplot as plt
 
 from cachesim import Request, Status
-from cachesim.readers import PopulationReader
+from readers.populationreader import PopulationReader
 from noncache import NonCache
 
 
@@ -24,12 +24,12 @@ class TestNonCache(TestCase):
 
         cache = NonCache()
         ret = cache.map([request] * 100)
-        requests, statuses = zip(*list(ret))
+        requests, statuses, ages = zip(*list(ret))
         self.assertTrue(all(s == Status.PASS for s in statuses))
         self.assertTrue(all(r == request for r in requests))
         self.assertTrue(all(r.maxage == maxage for r in requests))
         self.assertTrue(all(r.size == len(content) for r in requests))
-        self.assertTrue(all(r.fetched for r in requests))
+        self.assertTrue(all(r.retrieved for r in requests))
         self.assertTrue(all(r == request for r in requests))
 
     def test_chr(self):
@@ -53,13 +53,13 @@ class TestNonCache(TestCase):
 
         ret = cache.map(reader)
 
-        requests, statuses = zip(*list(ret))
+        requests, statuses, ages = zip(*list(ret))
 
         chr = sum(s == Status.HIT for s in statuses) / totalcount
         print(f"CHR: {chr * 100:.2f}%")
         self.assertEqual(0, chr)
 
-        plt.plot([r.time for r in requests], range(0, totalcount), 'x')
+        plt.plot([r.storedat for r in requests], range(0, totalcount), 'x')
         plt.ylabel("request no.")
         plt.xlabel('time')
         plt.show()

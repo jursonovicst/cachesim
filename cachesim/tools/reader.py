@@ -10,11 +10,14 @@ class Reader(ABC):
     """
 
     def __init__(self, count: int):
-        assert count >= 0, f"I expect a non negative totalsize, got '{count}'"
+        assert count >= 0, f"I expect a non negative count, got '{count}'"
         self._count = int(count)
 
     @property
     def count(self) -> int:
+        """
+        Number of items in this reader, -1 if not known.
+        """
         return self._count
 
     def __iter__(self) -> Iterator:

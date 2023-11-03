@@ -13,36 +13,33 @@ class TestRequest(TestCase):
 
             ts = time.time() + random.random() * 2 * 60 * 60 * 24 * 365 + 60 * 60 * 24 * 365
             letters = string.ascii_lowercase
-            hash = ''.join(random.choice(letters) for i in range(random.randint(5, 20)))
+            chash = ''.join(random.choice(letters) for i in range(random.randint(5, 20)))
             size = random.randint(1024, 1024 * 1024 * 100)
             maxage = random.randint(0, 30)
-            request = Request(time=ts, chash=hash, size=size, maxage=maxage)
+            request = Request(time=ts, chash=chash, size=size, maxage=maxage)
 
-            # before fetch
-            self.assertEqual(ts, request.requestedat)
-            self.assertEqual(hash, request.hash)
-            self.assertFalse(request.fetched)
-            self.assertEqual(f"{ts} {hash} - -", str(request))
+            self.assertEqual(ts, request.time)
+            self.assertEqual(chash, request.hash)
+            self.assertFalse(request.retrieved)
+            self.assertEqual(f"{ts} {chash} - -", str(request))
 
             with self.assertRaises(AssertionError):
-                a = request.storedat
+                request.ts_store
             with self.assertRaises(AssertionError):
-                a = request.size
+                request.size
             with self.assertRaises(AssertionError):
-                a = request.maxage
+                request.maxage
             with self.assertRaises(AssertionError):
-                a = request.cacheable
+                request.cacheable
             with self.assertRaises(AssertionError):
-                a = request.isexpired(ts + random.randint(0, 35))
+                request.isexpired(ts + random.randint(0, 35))
 
-            # after fetch
-            request.fetched = True
-            with self.assertRaises(AssertionError):
-                a = request.requestedat
-            self.assertEqual(ts, request.storedat)
-            self.assertEqual(hash, request.hash)
-            self.assertTrue(request.fetched)
-            self.assertEqual(f"{ts} {hash} {size} {maxage}", str(request))
+            # fetch
+            request.retrieve()
+            self.assertEqual(ts, request.time)
+            self.assertEqual(chash, request.hash)
+            self.assertTrue(request.retrieved)
+            self.assertEqual(f"{ts} {chash} {size} {maxage}", str(request))
 
             self.assertEqual(size, request.size)
             self.assertEqual(maxage, request.maxage)
@@ -51,10 +48,15 @@ class TestRequest(TestCase):
             else:
                 self.assertTrue(request.cacheable)
 
+            # store
+            request.store()
+            self.assertEqual(ts, request.ts_store)
+
             # after examples2 enter
-            self.assertEqual(ts, request.storedat)
-            self.assertEqual(hash, request.hash)
-            self.assertTrue(request.fetched)
+            self.assertEqual(ts, request.time)
+            self.assertEqual(ts, request.ts_store)
+            self.assertEqual(chash, request.hash)
+            self.assertTrue(request.retrieved)
 
             self.assertEqual(size, request.size)
             self.assertEqual(maxage, request.maxage)
@@ -84,8 +86,8 @@ class TestRequest(TestCase):
             maxage = random.randint(0, 30)
             request_b = Request(time=ts, chash=index, size=size_b, maxage=maxage)
 
-            request_a.fetched = True
-            request_b.fetched = True
+            request_a.retrieve()
+            request_b.retrieve()
             self.assertEqual(size_a + size_b, request_a + request_b)
 
     def test_eq(self):
@@ -131,4 +133,4 @@ class TestRequest(TestCase):
         self.assertEqual(request.hash, 'abc')
         self.assertEqual(request.size, 1)
         self.assertEqual(request.maxage, 60)
-        self.assertTrue(request.fetched)
+        self.assertTrue(request.retrieved)

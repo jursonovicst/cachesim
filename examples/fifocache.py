@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Tuple
 
-from cachesim import Cache, Status, PBarMixIn
+from cachesim import Cache, Status
 from cachesim import Request
-from staticgenerator import StaticGenerator
+from cachesim.tools import PBarMixIn
+from readers.populationreader import PopulationReader
 
 
 class FIFOCache(Cache):
@@ -14,10 +15,10 @@ class FIFOCache(Cache):
         super().__init__(totalsize=totalsize, **kwargs)
 
         # store metadata indexed by hash
-        self._cache = {}
+        self._cache = {}  # hash:fetched
 
         # keep track of indexes entering the examples2
-        self._index = []
+        self._index = []  # hash
 
         # actual size of the examples2
         self._size = 0
@@ -31,11 +32,11 @@ class FIFOCache(Cache):
         assert v >= 0, f"Size must be non negative, received '{v}'"
         self._size = v
 
-    def _lookup(self, requested: Request) -> Optional[Request]:
+    def _lookup(self, requested: Request) -> Tuple[bool, float | None]:
         if requested.hash not in self._index:
-            return None
+            return False, None
 
-        return self._cache[requested.hash]
+        return True, self._cache[requested.hash].time
 
     def _admit(self, fetched: Request) -> bool:
         # check if object fit into the examples2 (should not normally happen, eviction should be triggered first)
@@ -72,19 +73,20 @@ class FIFOCache(Cache):
 
 
 if __name__ == "__main__":
-    reader = StaticGenerator(10000000, Request(0, 'abc', 1, 3600))
+    count = 100000
+    cbase = count // 10
+    reader = PopulationReader(count, [Request(0, chash, 1, 3600) for chash in range(count // 10)], [1] * cbase)
 
 
     class MyCache(PBarMixIn, FIFOCache):
         pass
 
 
-    cache = MyCache(totalsize=1000)
+    cache = MyCache(totalsize=cbase // 10)
 
-    req, sta = zip(*list(cache.map(reader)))
+    req, sta, age = zip(*list(cache.map(reader)))
 
     hit = sta.count(Status.HIT)
     print(f"Requests: {len(sta)}")
     print(f"CHR: {hit / len(sta) * 100:.2f}%")
     print(f"Bytes server: {sum(r.size for r in req)} Byte")
-#    print(f"Bytes acquired: {sum(r.size for r in req)} Byte")

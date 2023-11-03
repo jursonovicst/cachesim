@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from cachesim import Request
-from cachesim.readers import CSVReader
+from csvreader import CSVReader
 
 
 class TestCSVReader(TestCase):

@@ -3,7 +3,8 @@ from os import access, R_OK
 from os.path import isfile
 from typing import Iterator
 
-from cachesim import Reader, Request
+from cachesim import Request
+from cachesim.tools import Reader
 
 
 class CSVReader(Reader):
