@@ -1,4 +1,6 @@
-from typing import Hashable
+from __future__ import annotations
+
+from typing import Hashable, List
 
 from cachesim import Status
 
@@ -12,6 +14,16 @@ class Request:
     def fromlist(cls, l: list):
         assert len(l) >= 4, f"I need 'ts, chash, size, maxage, [fetched]' elements, but got '{l}'"
         return cls(l[0], l[1], l[2], l[3], l[4] if len(l) > 4 else False)
+
+    @classmethod
+    def chr(cls, req: List[Request], skip: float = 0) -> float:
+        """
+        Calculates the cache hit ratio for a list if requests.
+
+        """
+        # number of elements to keep
+        n = int((1 - skip) * len(req))
+        return sum(map(lambda r: r.status == Status.HIT, req[-n:])) / n
 
     def __init__(self, time: float, chash: Hashable, size: int, maxage: int, retrieved: bool = False):
         """
