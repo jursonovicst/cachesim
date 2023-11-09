@@ -1,9 +1,7 @@
 from typing import Tuple
 
-from cachesim import Cache, Status
+from cachesim import Cache
 from cachesim import Request
-from cachesim.tools import PBarMixIn
-from generator import Generator
 
 
 class NonCache(Cache):
@@ -24,28 +22,3 @@ class NonCache(Cache):
 
     def _store(self, fetched: Request):
         pass
-
-    def _evict(self):
-        pass
-
-    @property
-    def _treshold(self) -> bool:
-        # no need to eviction
-        return False
-
-
-if __name__ == "__main__":
-    reader = Generator(10000000, hashgen=str("hash"), sizegen=int(1), maxagegen=int(10))
-
-
-    class MyCache(PBarMixIn, NonCache):
-        pass
-
-
-    cache = MyCache()
-    req, sta, age = zip(*list(cache.map(reader)))
-
-    hit = sta.count(Status.HIT)
-    print(f"Requests: {len(sta)}")
-    print(f"CHR: {hit / len(sta) * 100:.2f}%")
-    print(f"Bytes sent: {sum(r.size for r in req)} Byte")

@@ -2,10 +2,8 @@ from typing import Tuple
 
 import cachetools
 
-from cachesim import Cache, Status
+from cachesim import Cache
 from cachesim import Request
-from cachesim.tools import PBarMixIn
-from readers.populationreader import PopulationReader
 
 
 class SlowLFUCache(Cache):
@@ -106,31 +104,3 @@ class LFUCache(Cache):
 
     def _store(self, fetched: Request) -> None:
         self._cache[fetched.hash] = fetched
-
-
-if __name__ == "__main__":
-    count = 1000000
-    cbase = count // 10
-
-    print("Create population...")
-    s = 1.3
-    HNs = sum([k ** -s for k in range(1, cbase + 1)])
-    reader = PopulationReader(count, cbase, weights=[k ** -s / HNs for k in range(1, cbase + 1)])
-
-
-    class MyCache(PBarMixIn, LFUCache):
-        pass
-
-
-    # cache size is 10% of content base
-    # chr should be around 10%
-    cache = MyCache(totalsize=cbase // 10)
-
-    req, age = zip(*list(cache.map(reader)))
-
-    hit = sum(map(lambda r: r.status == Status.HIT, req))
-    print(f"Requests: {len(req)}")
-    print(f"CHR: {hit / len(req) * 100:.2f}%")
-    print(f"Bytes sent: {sum(r.size for r in req)} B")
-
-    x = [r.time for r in req]
