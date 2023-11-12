@@ -1,2 +1,1 @@
-from .noncache import NonCache
-from .lfucache import LFUCache
+from .caches import SimpleCache, NonCache, LFUCache, LRUCache

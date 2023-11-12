@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 from cachesim import Request, Status
 from readers.populationreader import PopulationReader
-from noncache import NonCache
+from caches import NonCache
 
 
 class TestNonCache(TestCase):
@@ -15,8 +15,8 @@ class TestNonCache(TestCase):
         maxage = 300
         request = Request(0, content, len(content), maxage)
 
-        self.assertEqual(0, cache.totalsize)
-        self.assertFalse(cache._lookup(request))
+        self.assertEqual(0, cache.maxsize)
+        self.assertNotIn(request.hash, cache)
         self.assertFalse(cache._admit(request))
         cache._store(request)
         self.assertFalse(cache._lookup(request))
