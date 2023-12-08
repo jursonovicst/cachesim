@@ -1,1 +1,1 @@
-from .caches import SimpleCache, NonCache, LFUCache, LRUCache
+from .caches import SimpleCache, NonCache, LFUCache, LRUCache, GLFUCache, BeladyCache
