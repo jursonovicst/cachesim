@@ -1,5 +1,5 @@
 import collections
-
+from cachesim import Request
 import cachetools
 
 from cachesim import RequestMixIn
@@ -22,26 +22,42 @@ class LFUCache(cachetools.LFUCache, RequestMixIn):
 class BeladyCache(cachetools.Cache, RequestMixIn):
 
     def __init__(self, maxsize, future, getsizeof=None):
-        super().__init__(maxsize, getsizeof)
-        self.__fut = future
-        self.__idx = -1
+        """
+        Cache implementation with Belady's algorithm for optimal cache eviction.
 
-    def __setitem__(self, key, value, internal=False):
-        if not internal:
-            raise SyntaxError("Do not use setitem method.")
+        param: maxsize: see base class
+        param: future: list of keys, the a-priori knowledge of the future.
+        param: getsizeof: see base class
+        """
+        super().__init__(maxsize, getsizeof)
+        self.__fut = future  # future requests
+        self.__idx = -1  # position, where we are, will be updated by setitem method
+
+    def __setitem__(self, key, value: Request):
+        self.__idx = value.time
         super().__setitem__(key, value)
 
-    def setitem(self, key, value, index):
-        self.__idx = index
-        self.__setitem__(key, value, internal=True)
+ #   def setitem(self, key, value, index):
+ #       """
+ #       param: key:
+ #       param: value:
+ #       param: index: the current position in the future list to allow to determine upcoming requests at content
+ #       eviction.
+ #       """
+ #       self.__idx = index  # store the current index position, __setitem__ may call popitem, where the future requests must be determined.
+ #       self.__setitem__(key, value, internal=True)
 
     def popitem(self):
         """Remove and return the `(key, value)` pair not needed for the longest time."""
-        key = max(self.keys(), key=lambda h: self.__pos(self.__fut, self.__idx, h))
+        key = max(self.keys(), key=lambda k: self.__pos(self.__fut, self.__idx, k))
         return key, self.pop(key)
 
     @staticmethod
     def __pos(array: list, start: int, value):
+        """
+        Returns the position of *value* in the *array* from index *start* upwards. If not found, array's length is
+        returned.
+        """
         try:
             return array.index(value, start)
         except ValueError:

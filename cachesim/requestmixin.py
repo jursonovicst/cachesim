@@ -1,5 +1,3 @@
-from typing import Iterable
-
 import cachetools
 
 from cachesim import Request, Status
@@ -7,29 +5,33 @@ from cachesim import Request, Status
 
 class RequestMixIn:
 
-    def getsizeof(self: cachetools.Cache, request: Request) -> float:
-        return request.size
-
-    def map(self, requests: Iterable[Request]):
+    @staticmethod
+    def getsizeof(value: Request) -> float:
         """
-        Use this method to process requests.
+        Overload cachetools.Cache getsizeof method.
         """
-        return map(self._recv, requests)
+        return value.size
 
-    def _recv(self: cachetools.Cache, request: Request) -> Request:
+    def request(self, req: Request):
+        """
+
+        """
+
+    def __getitem__(self: cachetools.Cache, request: Request):
         """
         Send request objects through the cache.
         """
 
         try:
-            # check object in cache (use getitem to allow internal counters to be updated)
-            self[request.hash]
+            # check object in cache (call getitem to allow internal counters to be updated)
+            cachetools.Cache.__getitem__(self, request.hash)
+            # self[request.hash]
 
             request.retrieve(Status.HIT)
             return request
 
         except KeyError:
-            # not in cache (or expired) --> simulate fetch!
+            # not in cache (or expired) --> simulate fetch! TODO: check expired implementation!
             request.retrieve(Status.MISS)
 
             try:
@@ -37,7 +39,8 @@ class RequestMixIn:
                     raise ValueError("Non cacheable")
 
                 # store object
-                self[request.hash] = request
+                cachetools.Cache.__setitem__(self, request.hash, request)
+                # self[request.hash] = request
 
                 # "serv" object from origin
                 return request
@@ -46,3 +49,6 @@ class RequestMixIn:
                 # "serv" object in passthrough mode
                 request.retrieve(Status.PASS)
                 return request
+
+    def __setitem__(self, key, value):
+        raise SyntaxError('Cannot call')

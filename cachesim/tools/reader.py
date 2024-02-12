@@ -22,7 +22,7 @@ class Reader(ABC):
 
     def __iter__(self) -> Iterator:
         """
-        Overload to initialize
+        Overload to initialize if needed
         :return:
         """
         return self
