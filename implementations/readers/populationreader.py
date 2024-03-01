@@ -12,8 +12,17 @@ class PopulationReader(Reader):
         super().__init__(count)
 
         start_ts = time.time()
-        self._requests = iter([Request(start_ts + ts, chash, 1, 2**64-1) for ts, chash in
-                               zip(range(count), random.choices(range(cbase), weights=weights, k=count))])
+        self.__requests = [Request(start_ts + ts, chash, 1, 2 ** 64 - 1) for ts, chash in
+                           zip(range(count), random.choices(range(cbase), weights=weights, k=count))]
+        self._iter = None
+
+    def __iter__(self):
+        self._iter = iter(self.__requests)
+        super().__iter__()
 
     def __next__(self):
-        return next(self._requests)
+        return next(self._iter)
+
+    @property
+    def future(self):
+        return
